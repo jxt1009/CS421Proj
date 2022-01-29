@@ -34,6 +34,8 @@ public class Table implements ITable {
 
     @Override
     public Attribute getAttrByName(String name) {
+        // Iterate through attribute list to try and find a matching name
+        // If not found, return null
         for(Attribute attr : lstAttribute){
             if(attr.getAttributeName().equals(name)){
                 return attr;
@@ -54,6 +56,7 @@ public class Table implements ITable {
 
     @Override
     public boolean addAttribute(String name, String type) {
+        // Attributes of the same name are not allowed, check and return false if match is found
         if(getAttrByName(name) != null){
             return false;
         }
@@ -63,6 +66,8 @@ public class Table implements ITable {
 
     @Override
     public boolean dropAttribute(String name) {
+        // Iterate through the list to try and find an attrib with the same name
+        // If found, drop it and return true. If no match, fall back on returning false
         for(Attribute attr:lstAttribute){
             if(attr.getAttributeName().equals(name)){
                 lstAttribute.remove(attr);
@@ -74,6 +79,7 @@ public class Table implements ITable {
 
     @Override
     public boolean addForeignKey(ForeignKey fk) {
+        // Check that the foreign key object is not already set, if so return false
         if(foreignKey != null){
             return false;
         }
@@ -83,6 +89,7 @@ public class Table implements ITable {
 
     @Override
     public boolean addIndex(String attributeName) {
+        // Ensure an index is not already set. If so, return false
         if(index != null){
             return false;
         }
