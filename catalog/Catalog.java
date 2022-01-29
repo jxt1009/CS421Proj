@@ -2,6 +2,7 @@ package catalog;
 
 import common.Attribute;
 import common.ITable;
+import common.Table;
 
 import java.util.ArrayList;
 
@@ -33,6 +34,7 @@ public class Catalog extends ACatalog {
 
     @Override
     public ITable addTable(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
+        //Hareigh testing a push
         return null;
     }
 
