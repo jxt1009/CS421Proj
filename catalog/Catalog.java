@@ -42,6 +42,7 @@ public class Catalog extends ACatalog {
     @Override
     public ITable addTable(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
         //Hareigh testing a push
+        // Test
         return null;
     }
 
