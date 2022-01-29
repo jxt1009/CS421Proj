@@ -11,6 +11,7 @@ public class Catalog extends ACatalog {
     private int pageSize;
     private int pageBufferSize;
 
+
     public Catalog(String location, int pageSize, int pageBufferSize) {
         this.location = location;
         this.pageSize = pageSize;
@@ -52,10 +53,12 @@ public class Catalog extends ACatalog {
         return false;
     }
 
+    // FOR LATER PHASES
     @Override
     public boolean alterTable(String tableName, Attribute attr, boolean drop, Object defaultValue) {
         return false;
     }
+
 
     @Override
     public boolean clearTable(String tableName) {
