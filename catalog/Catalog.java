@@ -53,7 +53,9 @@ public class Catalog extends ACatalog {
         return false;
     }
 
-    // FOR LATER PHASES
+    /**
+     * FOR LATER PHASES
+     */
     @Override
     public boolean alterTable(String tableName, Attribute attr, boolean drop, Object defaultValue) {
         return false;
@@ -65,11 +67,17 @@ public class Catalog extends ACatalog {
         return false;
     }
 
+    /**
+     * FOR LATER PHASES
+     */
     @Override
     public boolean addIndex(String tableName, String indexName, String attrName) {
         return false;
     }
 
+    /**
+     * FOR LATER PHASES
+     */
     @Override
     public boolean dropIndex(String tableName, String indexName) {
         return false;
