@@ -5,6 +5,14 @@ import common.ITable;
 import java.util.ArrayList;
 
 public class StorageManager extends AStorageManager{
+    private int attrIndex;
+    private ArrayList<Object> record = new ArrayList<>();
+    private ArrayList<Object> oldRecord = new ArrayList<>();
+    private ArrayList<Object> newRecord = new ArrayList<>();
+    private Object primaryKey;
+
+
+
     @Override
     public boolean clearTableData(ITable table) {
         return false;
