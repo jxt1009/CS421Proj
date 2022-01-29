@@ -7,23 +7,29 @@ import java.util.ArrayList;
 
 public class Catalog extends ACatalog {
 
+    private String location;
+    private int pageSize;
+    private int pageBufferSize;
+
     public Catalog(String location, int pageSize, int pageBufferSize) {
-        super();
+        this.location = location;
+        this.pageSize = pageSize;
+        this.pageBufferSize = pageBufferSize;
     }
 
     @Override
     public String getDbLocation() {
-        return null;
+        return this.location;
     }
 
     @Override
     public int getPageSize() {
-        return 0;
+        return this.pageSize;
     }
 
     @Override
     public int getPageBufferSize() {
-        return 0;
+        return this.pageBufferSize;
     }
 
     @Override
