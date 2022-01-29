@@ -8,6 +8,8 @@ public class Table implements ITable {
     private int tableId;
     private ArrayList<Attribute> lstAttribute = new ArrayList<Attribute>();
     private Attribute primaryKey;
+    private ForeignKey foreignKey;
+    private String index;
     private ArrayList<ForeignKey> lstForeignKeys = new ArrayList<ForeignKey>();
 
     @Override
@@ -32,6 +34,11 @@ public class Table implements ITable {
 
     @Override
     public Attribute getAttrByName(String name) {
+        for(Attribute attr : lstAttribute){
+            if(attr.getAttributeName().equals(name)){
+                return attr;
+            }
+        }
         return null;
     }
 
@@ -47,21 +54,39 @@ public class Table implements ITable {
 
     @Override
     public boolean addAttribute(String name, String type) {
+        if(getAttrByName(name) != null){
+            return false;
+        }
+        lstAttribute.add(new Attribute(name, type));
         return false;
     }
 
     @Override
     public boolean dropAttribute(String name) {
+        for(Attribute attr:lstAttribute){
+            if(attr.getAttributeName().equals(name)){
+                lstAttribute.remove(attr);
+                return true;
+            }
+        }
         return false;
     }
 
     @Override
     public boolean addForeignKey(ForeignKey fk) {
-        return false;
+        if(foreignKey != null){
+            return false;
+        }
+        this.foreignKey = fk;
+        return true;
     }
 
     @Override
     public boolean addIndex(String attributeName) {
-        return false;
+        if(index != null){
+            return false;
+        }
+        this.index = attributeName;
+        return true;
     }
 }
