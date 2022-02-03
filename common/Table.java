@@ -12,6 +12,13 @@ public class Table implements ITable {
     private String index;
     private ArrayList<ForeignKey> lstForeignKeys = new ArrayList<ForeignKey>();
 
+    public Table(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
+        this.tableName = tableName;
+        this.lstAttribute = attributes;
+        this.primaryKey = primaryKey;
+    }
+
+
     @Override
     public String getTableName() {
         return tableName;
@@ -61,7 +68,7 @@ public class Table implements ITable {
             return false;
         }
         lstAttribute.add(new Attribute(name, type));
-        return false;
+        return true;
     }
 
     @Override

@@ -11,8 +11,6 @@ public class StorageManager extends AStorageManager{
     private ArrayList<Object> newRecord = new ArrayList<>();
     private Object primaryKey;
 
-
-
     @Override
     public boolean clearTableData(ITable table) {
         return false;
