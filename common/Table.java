@@ -7,7 +7,7 @@ public class Table implements ITable {
     private String tableName;
     private int tableId;
     private ArrayList<Attribute> lstAttribute = new ArrayList<Attribute>();
-    private Attribute primaryKey;
+    private final Attribute primaryKey;
     private ForeignKey foreignKey;
     private String index;
     private ArrayList<ForeignKey> lstForeignKeys = new ArrayList<ForeignKey>();

@@ -8,10 +8,16 @@ import java.util.HashMap;
 
 public class StorageManager extends AStorageManager{
 
-    HashMap<String,ArrayList<ArrayList<Object>>> records = new HashMap<String,ArrayList<ArrayList<Object>>>();
+    HashMap<String,ArrayList<ArrayList<Object>>> records = new HashMap<>();
+
+    // Page buffer will be an arraylist of hashmaps containing records by table name
+    // To get a specific page, we need to iterate through all pages and find if the value is present
+    // Or in the case of inserting a record, find a page where it makes sense to store
+    ArrayList<HashMap> pageBuffer = new ArrayList<HashMap>();
 
     @Override
     public boolean clearTableData(ITable table) {
+        // iterate through attribs of table and call dropAttribute one by one
         return false;
     }
 
@@ -62,6 +68,7 @@ public class StorageManager extends AStorageManager{
 
     @Override
     public ArrayList<ArrayList<Object>> getRecords(ITable table) {
+        // What happens if num pages > buffer
         if(!records.containsKey(table.getTableName())){
             return new ArrayList<>();
         }
@@ -70,6 +77,7 @@ public class StorageManager extends AStorageManager{
 
     @Override
     public boolean insertRecord(ITable table, ArrayList<Object> record) {
+        // Iterate through pages and find one where primary key < page primary key
         if(!records.containsKey(table.getTableName())){
             records.put(table.getTableName(), new ArrayList<>());
         }
@@ -153,6 +161,16 @@ public class StorageManager extends AStorageManager{
     @Override
     public void purgePageBuffer() {
 
+    }
+
+    public HashMap<String, Object> getAllPages(){
+        // Load in all pages, but not sure how this will work with page buffer
+        return null;
+    }
+
+    public HashMap<String, Object> getPageByKey(Object primaryKey){
+        // Load in page one by one until page with the primary key value is found
+        return null;
     }
 
     @Override
