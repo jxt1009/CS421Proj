@@ -62,7 +62,7 @@ public class BufferManager {
         while (buffer.size() > pageLimit) {
             Page p = buffer.get(0);
             buffer.remove(0);
-            writeToDisk(table, p);
+            writeToDisk(p.getTable(), p);
         }
     }
 
@@ -82,34 +82,40 @@ public class BufferManager {
             for (int i = 0; i < p.getRecords().size(); i++) {
                 ArrayList<Object> records = p.getRecords().get(i);
                 for(int j = 0; j < records.size(); j++) {
-                    Attribute type = table.getAttributes().get(j);
-                    switch (type.getAttributeType()) {
-                        case "Integer":
-                            Integer intValue = (Integer) records.get(j);
-                            outputStream.writeInt(intValue);
-                            break;
+                        Object record = records.get(j);
+                            String type = p.getTable().getAttributes().get(j).getAttributeType();
+                            if (type.equals("Integer")) {
+                                outputStream.writeInt((Integer) record);
+                            }else if (type.equals("Double")) {
+                                outputStream.writeDouble((Double) record);
+                            }else if (type.equals("Boolean")) {
+                                outputStream.writeBoolean((Boolean) record);
+                            }else if (type.startsWith("Varchar")) {
+                                int charLen = Integer.parseInt(type.substring(type.indexOf("(")+1,type.indexOf(")")));
+                                String outputString = (String) record;
+                                for(int readIndex = 0; readIndex < charLen;readIndex++) {
+                                    if(readIndex > outputString.length()-1){
+                                        outputStream.writeChar('\t');
+                                    }else {
+                                        outputStream.writeChar(outputString.charAt(readIndex));
+                                    }
+                                }
+                            }else if (type.startsWith("Char")) {
+                                int charLen = Integer.parseInt(type.substring(type.indexOf("(")+1,type.indexOf(")")));
+                                String outputString = (String) record;
+                                for(int readIndex = 0; readIndex < charLen;readIndex++) {
+                                    if(readIndex > outputString.length()-1){
+                                        outputStream.writeChar('\t');
+                                    }else {
+                                        outputStream.writeChar(outputString.charAt(readIndex));
+                                    }
+                                }
+                            }else{
+                            }
+                        }
 
-                        case "Double":
-                            Double dblValue = (Double) records.get(j);
-                            outputStream.writeDouble(dblValue);
-                            break;
 
-                        case "Boolean":
-                            Boolean boolValue = (Boolean) records.get(j);
-                            outputStream.writeBoolean(boolValue);
-                            break;
 
-                        case "Varchar":
-                        case "Char":
-                            // TODO write out strings in files
-                            String strValue = (String) records.get(j);
-                            System.out.println("strValue");
-
-                            break;
-                        default:
-                            break;
-                    }
-                }
             }
         } catch (IOException e) {
             e.printStackTrace();

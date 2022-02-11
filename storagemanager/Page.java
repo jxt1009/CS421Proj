@@ -27,6 +27,7 @@ public class Page {
         this.pageId = pageId;
         table.addPage(this);
         File inputFile = new File(pageFileLocation);
+        System.out.println("READING IN PAGE FROM FILE");
         try {
             FileInputStream fin = new FileInputStream(inputFile);
             DataInputStream din = new DataInputStream(fin);
@@ -35,38 +36,33 @@ public class Page {
             for (int i = 0; i < totalStoredRecords; i++){
                 ArrayList<Object> record = new ArrayList<>();
                 for(Attribute attrib : table.getAttributes()){
-                    switch (attrib.getAttributeType()) {
-                        case "Integer":
-                            record.add(din.readInt());
-                            System.out.println("intValue");
-                            break;
-
-                        case "Double":
-                            record.add(din.readDouble());
-                            System.out.println("dblValue");
-
-                            break;
-
-                        case "Boolean":
-                            record.add(din.readBoolean());
-                            System.out.println("boolValue");
-
-                            break;
-
-                        case "Varchar":
-                            String strValue = "";
-                            // TODO READ IN STRING VALUES
-                            break;
-                        case "Char":
-                            record.add(din.readChar());
-                            System.out.println("charValue");
-
-                            break;
-                        default:
+                    String type = attrib.getAttributeType();
+                    if (type.equals("Integer")) {
+                        record.add(din.readInt());
+                    }else if (type.equals("Double")) {
+                        record.add(din.readDouble());
+                    }else if (type.equals("Boolean")) {
+                        record.add(din.readBoolean());
+                    }else if (type.startsWith("Varchar")) {
+                        int charLen = Integer.parseInt(type.substring(type.indexOf("(")+1,type.indexOf(")")));
+                        String inputChar = "";
+                        for(int readIndex = 0; readIndex < charLen;readIndex++) {
+                            char c = din.readChar();
+                            if(c != '\t') inputChar += c;
+                        }
+                        record.add(inputChar);
+                    }else if (type.startsWith("Char")) {
+                        int charLen = Integer.parseInt(type.substring(type.indexOf("(")+1,type.indexOf(")")));
+                        String inputChar = "";
+                        for(int readIndex = 0; readIndex < charLen;readIndex++) {
+                            char c = din.readChar();
+                            if(c != '\t') inputChar += c;
+                        }
+                        record.add(inputChar);
+                    }else{
                     }
                 }
                 records.add(record);
-                System.out.println(records.size());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -121,4 +117,7 @@ public class Page {
         return false;
     }
 
+    public Table getTable() {
+        return table;
+    }
 }
