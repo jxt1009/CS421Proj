@@ -36,62 +36,6 @@ public class Catalog extends ACatalog {
         }
     }
 
-    private void loadCatalogFromDisk(){
-        try {
-            FileInputStream fin  = new FileInputStream(catalogFile);
-
-            DataInputStream dis = new DataInputStream(fin);
-            pageBufferSize = dis.readInt();
-            pageSize = dis.readInt();
-
-            int numTables = dis.readInt();
-            System.out.println(numTables);
-            for(int i = 0; i < numTables;i++) {
-                int tableNameLen = dis.readInt();
-                String tableName = readChars(tableNameLen, dis);
-                int primaryKeyNameLen = dis.readInt();
-                String primaryKeyName = readChars(primaryKeyNameLen, dis);
-                int primaryKeyTypeLen = dis.readInt();
-                String primaryKeyType = readChars(primaryKeyTypeLen, dis);
-                int numAttributes = dis.readInt();
-                ArrayList<Attribute> tableAttributes = new ArrayList<>();
-                for(int attrib = 0; attrib < numAttributes;attrib++){
-                    int attribNameLen = dis.readInt();
-                    String attribName = readChars(attribNameLen,dis);
-                    int attribTypeLen = dis.readInt();
-                    String attribType = readChars(attribTypeLen,dis);
-                    tableAttributes.add(new Attribute(attribName,attribType));
-                }
-                int numPageIDs = dis.readInt();
-                Table newTable = new Table(tableName,tableAttributes,new Attribute(primaryKeyName,primaryKeyType));
-                for(int pageIndex = 0; pageIndex < numPageIDs; pageIndex++){
-                    newTable.addPage(dis.readInt());
-                }
-
-                System.out.println(tableName + " " + primaryKeyName + " " + primaryKeyType);
-
-                tables.put(tableName,newTable);
-
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String readChars(int len,DataInputStream in){
-        String finalString = "";
-        for(int i = 0; i < len; i ++){
-            try {
-                char c = in.readChar();
-                finalString += c;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return finalString;
-    }
-
     @Override
     public String getDbLocation() {
         return this.location;
@@ -186,30 +130,43 @@ public class Catalog extends ACatalog {
             }
             FileOutputStream fout = new FileOutputStream(catalogFile);
             DataOutputStream dos = new DataOutputStream(fout);
+            // Write out global vars
             dos.writeInt(pageBufferSize);
             dos.writeInt(pageSize);
+            // Write out the number of tables so load loop can correctly read in
             dos.writeInt(tables.size());
+            // For all the tables
             for(String t : tables.keySet()){
                 Table table = tables.get(t);
+                // Write out the length of the table name and the table name
                 dos.writeInt(table.getTableName().length());
                 dos.writeChars(table.getTableName());
-
+                // Write out the length of the attribute name and the name
                 dos.writeInt(table.getPrimaryKey().attributeName().length());
                 dos.writeChars(table.getPrimaryKey().attributeName());
 
+                // Write out the length of the attribute type and the type
                 dos.writeInt(table.getPrimaryKey().attributeType().length());
                 dos.writeChars(table.getPrimaryKey().attributeType());
 
+                // Write out the number of attributes before the attribute section
                 dos.writeInt(table.getAttributes().size());
+
+                // Iterate through attributes and write out the len/value for each
                 for(Attribute attribute : table.getAttributes()){
+                    // Write the length of the attribute name and value
                     dos.writeInt(attribute.getAttributeName().length());
                     dos.writeChars(attribute.getAttributeName());
+
+                    // Write the length of the attribute type and value
                     dos.writeInt(attribute.getAttributeType().length());
                     dos.writeChars(attribute.getAttributeType());
                 }
 
+                // Write out length of page ID list
                 dos.writeInt(table.getPageList().size());
                 for(Integer pageID : table.getPageList()) {
+                    // Write out pageIDs to file
                     dos.writeInt(pageID);
                 }
             }
@@ -218,4 +175,81 @@ public class Catalog extends ACatalog {
         }
         return false;
     }
+
+    private void loadCatalogFromDisk(){
+        try {
+            FileInputStream fin  = new FileInputStream(catalogFile);
+
+            DataInputStream dis = new DataInputStream(fin);
+            // First two ints are pageBuf size and pageSize
+            pageBufferSize = dis.readInt();
+            pageSize = dis.readInt();
+
+            // Third int is the num of tables
+            int numTables = dis.readInt();
+            for(int i = 0; i < numTables;i++) {
+                // Get the length of string to read in
+                int tableNameLen = dis.readInt();
+                // Read in table name based on # of chars to parse
+                String tableName = readChars(tableNameLen, dis);
+
+                // Read in the length of the primaryKeyName
+                int primaryKeyNameLen = dis.readInt();
+                // Read in primary key name based on len
+                String primaryKeyName = readChars(primaryKeyNameLen, dis);
+
+                // Read in length of primary key type
+                int primaryKeyTypeLen = dis.readInt();
+                // Read in primary key type based on len
+                String primaryKeyType = readChars(primaryKeyTypeLen, dis);
+
+                // Parse num of attributes to read in
+                int numAttributes = dis.readInt();
+                ArrayList<Attribute> tableAttributes = new ArrayList<>();
+                for(int attrib = 0; attrib < numAttributes;attrib++){
+                    // Get length of attrib name to read in
+                    int attribNameLen = dis.readInt();
+                    // Read in attrib name based on len
+                    String attribName = readChars(attribNameLen,dis);
+
+                    // Get length of attrib type
+                    int attribTypeLen = dis.readInt();
+                    // Read in attrib type with given len
+                    String attribType = readChars(attribTypeLen,dis);
+
+                    // Add new attribute to list for new table
+                    tableAttributes.add(new Attribute(attribName,attribType));
+                }
+
+                // Parse how many page ID values to read in
+                int numPageIDs = dis.readInt();
+                // Create the new table to add the pages to
+                Table newTable = new Table(tableName,tableAttributes,new Attribute(primaryKeyName,primaryKeyType));
+                for(int pageIndex = 0; pageIndex < numPageIDs; pageIndex++){
+                    // Read in page ID and add it to the table
+                    newTable.addPage(dis.readInt());
+                }
+
+                tables.put(tableName,newTable);
+
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String readChars(int len,DataInputStream in){
+        String finalString = "";
+        for(int i = 0; i < len; i ++){
+            try {
+                char c = in.readChar();
+                finalString += c;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return finalString;
+    }
+
 }
