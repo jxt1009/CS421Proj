@@ -1,5 +1,7 @@
 package common;
 
+import storagemanager.Page;
+
 import java.util.ArrayList;
 
 public class Table implements ITable {
@@ -11,6 +13,7 @@ public class Table implements ITable {
     private ForeignKey foreignKey;
     private String index;
     private ArrayList<ForeignKey> lstForeignKeys = new ArrayList<ForeignKey>();
+    private ArrayList<Integer> pageList = new ArrayList<>();
 
     public Table(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
         this.tableName = tableName;
@@ -43,8 +46,8 @@ public class Table implements ITable {
     public Attribute getAttrByName(String name) {
         // Iterate through attribute list to try and find a matching name
         // If not found, return null
-        for(Attribute attr : lstAttribute){
-            if(attr.getAttributeName().equals(name)){
+        for (Attribute attr : lstAttribute) {
+            if (attr.getAttributeName().equals(name)) {
                 return attr;
             }
         }
@@ -64,7 +67,7 @@ public class Table implements ITable {
     @Override
     public boolean addAttribute(String name, String type) {
         // Attributes of the same name are not allowed, check and return false if match is found
-        if(getAttrByName(name) != null){
+        if (getAttrByName(name) != null) {
             return false;
         }
         lstAttribute.add(new Attribute(name, type));
@@ -75,8 +78,8 @@ public class Table implements ITable {
     public boolean dropAttribute(String name) {
         // Iterate through the list to try and find an attrib with the same name
         // If found, drop it and return true. If no match, fall back on returning false
-        for(Attribute attr:lstAttribute){
-            if(attr.getAttributeName().equals(name)){
+        for (Attribute attr : lstAttribute) {
+            if (attr.getAttributeName().equals(name)) {
                 lstAttribute.remove(attr);
                 return true;
             }
@@ -87,7 +90,7 @@ public class Table implements ITable {
     @Override
     public boolean addForeignKey(ForeignKey fk) {
         // Check that the foreign key object is not already set, if so return false
-        if(foreignKey != null){
+        if (foreignKey != null) {
             return false;
         }
         this.foreignKey = fk;
@@ -97,10 +100,31 @@ public class Table implements ITable {
     @Override
     public boolean addIndex(String attributeName) {
         // Ensure an index is not already set. If so, return false
-        if(index != null){
+        if (index != null) {
             return false;
         }
         this.index = attributeName;
         return true;
     }
+
+    public boolean addPage(Page page) {
+        if (pageList.contains(page.getPageId())) {
+            return false;
+        }
+        pageList.add(page.getPageId());
+        return true;
+    }
+
+    public boolean removePage(Page page) {
+        if (pageList.contains(page.getPageId())) {
+            return false;
+        }
+        pageList.remove(page.getPageId());
+        return true;
+    }
+
+    public ArrayList<Integer> getPageList() {
+        return pageList;
+    }
+
 }

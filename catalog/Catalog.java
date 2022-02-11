@@ -4,6 +4,7 @@ import common.Attribute;
 import common.ITable;
 import common.Table;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -12,6 +13,7 @@ public class Catalog extends ACatalog {
     private String location;
     private int pageSize;
     private int pageBufferSize;
+    private File catalogFile;
     HashMap<String,Table> tables = new HashMap<String,Table>();
 
 
@@ -19,6 +21,45 @@ public class Catalog extends ACatalog {
         this.location = location;
         this.pageSize = pageSize;
         this.pageBufferSize = pageBufferSize;
+        File[] listOfFiles = new File(location).listFiles();
+        if(listOfFiles != null && listOfFiles.length > 0) {
+            for (File file : listOfFiles) {
+                if (file.isFile()) {
+                    if (file.getName().equals("catalog.db")) {
+                        catalogFile = file;
+                        loadCatalogFromDisk();
+                    }
+                }
+            }
+        }
+    }
+
+    private void loadCatalogFromDisk(){
+        try {
+            FileInputStream fin  = new FileInputStream(catalogFile);
+
+            DataInputStream dis = new DataInputStream(fin);
+            pageSize = dis.readInt();
+            pageBufferSize = dis.readInt();
+
+            System.out.println(pageBufferSize + " " + pageSize);
+            String tableName = readChars(dis.readInt(),dis);
+            System.out.println(tableName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String readChars(int len,DataInputStream in){
+        String finalString = "";
+        for(int i = 0; i < len; i ++){
+            try {
+                finalString += in.readChar();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return finalString;
     }
 
     @Override
@@ -79,6 +120,7 @@ public class Catalog extends ACatalog {
 
     @Override
     public boolean clearTable(String tableName) {
+        // TODO
         return false;
     }
 
@@ -100,6 +142,35 @@ public class Catalog extends ACatalog {
 
     @Override
     public boolean saveToDisk() {
+        try {
+            catalogFile = new File(location + "/catalog.db");
+            if(!catalogFile.exists()){
+                new File(location).mkdirs();
+                try {
+                    catalogFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            FileOutputStream fout = new FileOutputStream(catalogFile);
+            DataOutputStream dos = new DataOutputStream(fout);
+            dos.writeInt(pageBufferSize);
+            dos.writeInt(pageSize);
+            for(String t : tables.keySet()){
+                Table table = tables.get(t);
+                dos.writeInt(table.getTableName().length());
+                dos.writeChars(table.getTableName());
+                System.out.println(table.getTableName());
+                for(Attribute attribute : tables.get(t).getAttributes()){
+                    dos.writeInt(attribute.getAttributeName().length());
+                    dos.writeChars(attribute.getAttributeName());
+                    dos.writeInt(attribute.getAttributeType().length());
+                    dos.writeChars(attribute.getAttributeType());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 }
