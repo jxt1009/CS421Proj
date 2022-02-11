@@ -107,11 +107,11 @@ public class Table implements ITable {
         return true;
     }
 
-    public boolean addPage(Page page) {
-        if (pageList.contains(page.getPageId())) {
+    public boolean addPage(int pageID) {
+        if (pageList.contains(pageID)) {
             return false;
         }
-        pageList.add(page.getPageId());
+        pageList.add(pageID);
         return true;
     }
 

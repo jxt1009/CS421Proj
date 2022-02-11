@@ -19,13 +19,13 @@ public class Page {
         this.table = table;
         this.pageId = pageId;
         this.pageSize = ACatalog.getCatalog().getPageSize();
-        table.addPage(this);
+        table.addPage(pageId);
     }
 
     public Page(Table table, String pageFileLocation, int pageId) {
         this.table = table;
         this.pageId = pageId;
-        table.addPage(this);
+        table.addPage(pageId);
         File inputFile = new File(pageFileLocation);
         System.out.println("READING IN PAGE FROM FILE");
         try {
@@ -73,7 +73,7 @@ public class Page {
         this.table = table;
         this.pageId = pageId;
         this.records = records;
-        table.addPage(this);
+        table.addPage(pageId);
     }
 
     public Integer getPageId(){

@@ -16,7 +16,7 @@ public class BufferManager {
     private int pageSize;
     private int pageLimit;
     private String location;
-    private String pageFolder ;
+    private String pageFolder;
     private File pageDir;
     private int pageIDIndex = 0;
 
@@ -81,39 +81,38 @@ public class BufferManager {
             outputStream.writeInt(p.getRecords().size());
             for (int i = 0; i < p.getRecords().size(); i++) {
                 ArrayList<Object> records = p.getRecords().get(i);
-                for(int j = 0; j < records.size(); j++) {
-                        Object record = records.get(j);
-                            String type = p.getTable().getAttributes().get(j).getAttributeType();
-                            if (type.equals("Integer")) {
-                                outputStream.writeInt((Integer) record);
-                            }else if (type.equals("Double")) {
-                                outputStream.writeDouble((Double) record);
-                            }else if (type.equals("Boolean")) {
-                                outputStream.writeBoolean((Boolean) record);
-                            }else if (type.startsWith("Varchar")) {
-                                int charLen = Integer.parseInt(type.substring(type.indexOf("(")+1,type.indexOf(")")));
-                                String outputString = (String) record;
-                                for(int readIndex = 0; readIndex < charLen;readIndex++) {
-                                    if(readIndex > outputString.length()-1){
-                                        outputStream.writeChar('\t');
-                                    }else {
-                                        outputStream.writeChar(outputString.charAt(readIndex));
-                                    }
-                                }
-                            }else if (type.startsWith("Char")) {
-                                int charLen = Integer.parseInt(type.substring(type.indexOf("(")+1,type.indexOf(")")));
-                                String outputString = (String) record;
-                                for(int readIndex = 0; readIndex < charLen;readIndex++) {
-                                    if(readIndex > outputString.length()-1){
-                                        outputStream.writeChar('\t');
-                                    }else {
-                                        outputStream.writeChar(outputString.charAt(readIndex));
-                                    }
-                                }
-                            }else{
+                for (int j = 0; j < records.size(); j++) {
+                    Object record = records.get(j);
+                    String type = p.getTable().getAttributes().get(j).getAttributeType();
+                    if (type.equals("Integer")) {
+                        outputStream.writeInt((Integer) record);
+                    } else if (type.equals("Double")) {
+                        outputStream.writeDouble((Double) record);
+                    } else if (type.equals("Boolean")) {
+                        outputStream.writeBoolean((Boolean) record);
+                    } else if (type.startsWith("Varchar")) {
+                        int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
+                        String outputString = (String) record;
+                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
+                            if (readIndex > outputString.length() - 1) {
+                                outputStream.writeChar('\t');
+                            } else {
+                                outputStream.writeChar(outputString.charAt(readIndex));
                             }
                         }
-
+                    } else if (type.startsWith("Char")) {
+                        int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
+                        String outputString = (String) record;
+                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
+                            if (readIndex > outputString.length() - 1) {
+                                outputStream.writeChar('\t');
+                            } else {
+                                outputStream.writeChar(outputString.charAt(readIndex));
+                            }
+                        }
+                    } else {
+                    }
+                }
 
 
             }
@@ -123,7 +122,7 @@ public class BufferManager {
     }
 
     private void addPageToBuffer(Table table, Page page) {
-        if(!buffer.contains(page)) {
+        if (!buffer.contains(page)) {
             buffer.add(page);
             updateBuffer(table);
             pageIDIndex += 1;
@@ -257,7 +256,7 @@ public class BufferManager {
     public boolean cutRecords(ITable itable, Page page, int cutIndex) {
         Table table = (Table) itable;
         ArrayList<ArrayList<Object>> firstHalfRecords = new ArrayList<ArrayList<Object>>(page.getRecords().subList(0, cutIndex));
-        ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<ArrayList<Object>>(page.getRecords().subList(cutIndex+1, page.getRecords().size()-1));
+        ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<ArrayList<Object>>(page.getRecords().subList(cutIndex + 1, page.getRecords().size() - 1));
         Page firstPage = new Page(table, pageIDIndex, firstHalfRecords);
         Page secondPage = new Page(table, pageIDIndex + 1, secondHalfRecords);
         removePageFromBuffer(table, page);
