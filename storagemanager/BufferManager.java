@@ -32,7 +32,7 @@ public class BufferManager {
     }
 
     public ArrayList<Page> loadAllPages(Table table) {
-        ArrayList<Page> pages = buffer;
+        ArrayList<Page> pages = new ArrayList<Page>();
         for (Integer fileName : table.getPageList()) {
             Page page = findPageInBuffer(fileName);
             if (page == null) {
@@ -126,9 +126,6 @@ public class BufferManager {
 
     private Page addNewPage(Table table) {
         Page page = new Page(table, pageIDIndex);
-        if (!table.addPage(page)) {
-            return null;
-        }
         addPageToBuffer(table, page);
         return page;
     }
@@ -169,11 +166,12 @@ public class BufferManager {
     public ArrayList<ArrayList<Object>> getAllRecords(ITable table) {
         Table castedTable = (Table) table;
         ArrayList<Page> tablePages = loadAllPages(castedTable);
-        System.out.println(((Table) table).getPageList().size() + " " +tablePages.size());
+        //System.out.println(((Table) table).getPageList().size() + " " +tablePages.size());
         ArrayList<ArrayList<Object>> allRecords = new ArrayList<>();
         for (Page page : tablePages) {
             allRecords.addAll(page.getRecords());
         }
+        //System.out.println(allRecords.size());
         return allRecords;
     }
 
