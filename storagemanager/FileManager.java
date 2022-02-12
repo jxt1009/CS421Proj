@@ -6,7 +6,8 @@ import java.io.IOException;
 
 public class FileManager {
 
-    public static String readChars(int len, DataInputStream in)throws IOException {
+    public static String readChars(DataInputStream in)throws IOException {
+        int len = in.readInt();
         String finalString = "";
         for(int i = 0; i < len; i ++){
             char c = in.readChar();

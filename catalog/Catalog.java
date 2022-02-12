@@ -184,34 +184,24 @@ public class Catalog extends ACatalog {
             // Third int is the num of tables
             int numTables = dis.readInt();
             for(int i = 0; i < numTables;i++) {
-                // Get the length of string to read in
-                int tableNameLen = dis.readInt();
                 // Read in table name based on # of chars to parse
-                String tableName = FileManager.readChars(tableNameLen, dis);
+                String tableName = FileManager.readChars(dis);
 
-                // Read in the length of the primaryKeyName
-                int primaryKeyNameLen = dis.readInt();
                 // Read in primary key name based on len
-                String primaryKeyName = FileManager.readChars(primaryKeyNameLen, dis);
+                String primaryKeyName = FileManager.readChars(dis);
 
-                // Read in length of primary key type
-                int primaryKeyTypeLen = dis.readInt();
                 // Read in primary key type based on len
-                String primaryKeyType = FileManager.readChars(primaryKeyTypeLen, dis);
+                String primaryKeyType = FileManager.readChars(dis);
 
                 // Parse num of attributes to read in
                 int numAttributes = dis.readInt();
                 ArrayList<Attribute> tableAttributes = new ArrayList<>();
                 for(int attrib = 0; attrib < numAttributes;attrib++){
-                    // Get length of attrib name to read in
-                    int attribNameLen = dis.readInt();
                     // Read in attrib name based on len
-                    String attribName = FileManager.readChars(attribNameLen,dis);
+                    String attribName = FileManager.readChars(dis);
 
-                    // Get length of attrib type
-                    int attribTypeLen = dis.readInt();
                     // Read in attrib type with given len
-                    String attribType = FileManager.readChars(attribTypeLen,dis);
+                    String attribType = FileManager.readChars(dis);
 
                     // Add new attribute to list for new table
                     tableAttributes.add(new Attribute(attribName,attribType));
