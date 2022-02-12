@@ -3,6 +3,8 @@ package catalog;
 import common.Attribute;
 import common.ITable;
 import common.Table;
+import storagemanager.FileManager;
+import storagemanager.Page;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -22,44 +24,17 @@ public class Catalog extends ACatalog {
         this.pageSize = pageSize;
         this.pageBufferSize = pageBufferSize;
         File[] listOfFiles = new File(location).listFiles();
+
         if(listOfFiles != null && listOfFiles.length > 0) {
             for (File file : listOfFiles) {
                 if (file.isFile()) {
-                    if (file.getName().equals("catalog.db")) {
+                    if (file.getName().equals("catalog")) {
                         catalogFile = file;
                         loadCatalogFromDisk();
                     }
                 }
             }
         }
-    }
-
-    private void loadCatalogFromDisk(){
-        try {
-            FileInputStream fin  = new FileInputStream(catalogFile);
-
-            DataInputStream dis = new DataInputStream(fin);
-            pageSize = dis.readInt();
-            pageBufferSize = dis.readInt();
-
-            System.out.println(pageBufferSize + " " + pageSize);
-            String tableName = readChars(dis.readInt(),dis);
-            System.out.println(tableName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String readChars(int len,DataInputStream in){
-        String finalString = "";
-        for(int i = 0; i < len; i ++){
-            try {
-                finalString += in.readChar();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return finalString;
     }
 
     @Override
@@ -87,6 +62,7 @@ public class Catalog extends ACatalog {
         Table newTable = new Table(tableName,attributes,primaryKey);
         if(!tables.containsKey(tableName)){
             tables.put(tableName,newTable);
+            saveToDisk();
             return newTable;
         }
         return null;
@@ -103,7 +79,8 @@ public class Catalog extends ACatalog {
     @Override
     public boolean dropTable(String tableName) {
         if(containsTable(tableName)){
-            System.out.println(tables.remove(tableName));
+            tables.remove(tableName);
+            saveToDisk();
             return true;
         }
         return false;
@@ -143,7 +120,7 @@ public class Catalog extends ACatalog {
     @Override
     public boolean saveToDisk() {
         try {
-            catalogFile = new File(location + "/catalog.db");
+            catalogFile = new File(location + "/catalog");
             if(!catalogFile.exists()){
                 new File(location).mkdirs();
                 try {
@@ -154,18 +131,39 @@ public class Catalog extends ACatalog {
             }
             FileOutputStream fout = new FileOutputStream(catalogFile);
             DataOutputStream dos = new DataOutputStream(fout);
+            // Write out global vars
             dos.writeInt(pageBufferSize);
             dos.writeInt(pageSize);
+            // Write out the number of tables so load loop can correctly read in
+            dos.writeInt(tables.size());
+            // For all the tables
             for(String t : tables.keySet()){
                 Table table = tables.get(t);
-                dos.writeInt(table.getTableName().length());
-                dos.writeChars(table.getTableName());
-                System.out.println(table.getTableName());
-                for(Attribute attribute : tables.get(t).getAttributes()){
-                    dos.writeInt(attribute.getAttributeName().length());
-                    dos.writeChars(attribute.getAttributeName());
-                    dos.writeInt(attribute.getAttributeType().length());
-                    dos.writeChars(attribute.getAttributeType());
+                // Write out the length of the table name and the table name
+                FileManager.writeChars(table.getTableName(),dos);
+                // Write out the length of the attribute name and the name
+                FileManager.writeChars(table.getPrimaryKey().attributeName(),dos);
+
+                // Write out the length of the attribute type and the type
+                FileManager.writeChars(table.getPrimaryKey().attributeType(),dos);
+
+                // Write out the number of attributes before the attribute section
+                dos.writeInt(table.getAttributes().size());
+
+                // Iterate through attributes and write out the len/value for each
+                for(Attribute attribute : table.getAttributes()){
+                    // Write the length of the attribute name and value
+                    FileManager.writeChars(attribute.getAttributeName(),dos);
+
+                    // Write the length of the attribute type and value
+                    FileManager.writeChars(attribute.getAttributeType(),dos);
+                }
+
+                // Write out length of page ID list
+                dos.writeInt(table.getPageList().size());
+                for(Integer pageID : table.getPageList()) {
+                    // Write out pageIDs to file
+                    dos.writeInt(pageID);
                 }
             }
         } catch (IOException e) {
@@ -173,4 +171,59 @@ public class Catalog extends ACatalog {
         }
         return false;
     }
+
+    private void loadCatalogFromDisk(){
+        try {
+            FileInputStream fin  = new FileInputStream(catalogFile);
+
+            DataInputStream dis = new DataInputStream(fin);
+            // First two ints are pageBuf size and pageSize
+            pageBufferSize = dis.readInt();
+            pageSize = dis.readInt();
+
+            // Third int is the num of tables
+            int numTables = dis.readInt();
+            for(int i = 0; i < numTables;i++) {
+                // Read in table name based on # of chars to parse
+                String tableName = FileManager.readChars(dis);
+
+                // Read in primary key name based on len
+                String primaryKeyName = FileManager.readChars(dis);
+
+                // Read in primary key type based on len
+                String primaryKeyType = FileManager.readChars(dis);
+
+                // Parse num of attributes to read in
+                int numAttributes = dis.readInt();
+                ArrayList<Attribute> tableAttributes = new ArrayList<>();
+                for(int attrib = 0; attrib < numAttributes;attrib++){
+                    // Read in attrib name based on len
+                    String attribName = FileManager.readChars(dis);
+
+                    // Read in attrib type with given len
+                    String attribType = FileManager.readChars(dis);
+
+                    // Add new attribute to list for new table
+                    tableAttributes.add(new Attribute(attribName,attribType));
+                }
+
+                // Parse how many page ID values to read in
+                int numPageIDs = dis.readInt();
+                // Create the new table to add the pages to
+                Table newTable = new Table(tableName,tableAttributes,new Attribute(primaryKeyName,primaryKeyType));
+                for(int pageIndex = 0; pageIndex < numPageIDs; pageIndex++){
+                    // Read in page ID and add it to the table
+                    newTable.addPage(dis.readInt());
+                }
+
+                tables.put(tableName,newTable);
+
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
