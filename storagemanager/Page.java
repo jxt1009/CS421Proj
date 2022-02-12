@@ -108,8 +108,21 @@ public class Page {
         return -1;
     }
 
-    public boolean hasSpace(){
-        return records.size() < pageSize;
+    public boolean hasSpace(ArrayList<Object> newRecord) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream out = null;
+        try {
+            out = new ObjectOutputStream(baos);
+            out.writeObject(records);
+            out.writeObject(newRecord);
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int numBytes = baos.toByteArray().length;
+//        System.out.println("RECORDS ARRAYLIST HAS: " + numBytes + " NUMBER OF BYTES\n");
+//        System.out.println(numBytes < pageSize);
+        return numBytes < pageSize;
     }
 
     public boolean updateRecord(ITable table, Object primaryKey, ArrayList<Object> newRecord) {

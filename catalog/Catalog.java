@@ -94,11 +94,24 @@ public class Catalog extends ACatalog {
         return false;
     }
 
-
+    /**
+     * Will clear all data stored in the table with the provided name. This includes clearing all indices related
+     * to this table (later phase when index becomes a part). This does not touch any metadata related to the table.
+     * @param tableName the name of the table to clear.
+     * @return true if successful; false otherwise
+     */
     @Override
     public boolean clearTable(String tableName) {
         // TODO
-        return false;
+        if(containsTable(tableName)){
+            for(int i=0;i < tables.size();i++){
+                Table remove = tables.remove(i);
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
