@@ -63,6 +63,8 @@ public class Page {
                 }
                 records.add(record);
             }
+            din.close();
+            fin.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -83,26 +85,27 @@ public class Page {
         return records;
     }
 
-    public boolean addRecord(ITable table, ArrayList<Object> record){
+    public boolean addRecord(ITable table, ArrayList<Object> record,int index){
         int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
         for(ArrayList<Object> recordList : records){
             if(recordList.get(primaryKeyIndex).equals(record.get(primaryKeyIndex))){
                 return false;
             }
         }
-        records.add(record);
+        records.add(index,record);
         return true;
     }
 
-    public boolean deleteRecord(ITable table, Object pkValue){
+    public int deleteRecord(ITable table, Object pkValue){
         int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
         for(ArrayList<Object> recordList : records){
             if(recordList.get(primaryKeyIndex).equals(pkValue)){
+                int index = records.indexOf(recordList);
                 records.remove(recordList);
-                return true;
+                return index;
             }
         }
-        return false;
+        return -1;
     }
 
     public boolean hasSpace(){
@@ -110,8 +113,9 @@ public class Page {
     }
 
     public boolean updateRecord(ITable table, Object primaryKey, ArrayList<Object> newRecord) {
-        if(deleteRecord(table,primaryKey)) {
-            return addRecord(table, newRecord);
+        int recordIndex = deleteRecord(table,primaryKey);
+        if(recordIndex != -1) {
+            return addRecord(table, newRecord,recordIndex);
         }
         return false;
     }

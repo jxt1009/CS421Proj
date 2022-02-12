@@ -113,8 +113,9 @@ public class BufferManager {
                     }
                 }
 
-
             }
+            outputStream.close();
+            fileOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -183,45 +184,62 @@ public class BufferManager {
         Table table = (Table) itable;
         ArrayList<Page> tablePages = loadAllPages(table);
         if (tablePages.size() == 0) {
-            tablePages.add(addNewPage(table));
+            Page p = addNewPage(table);
+            p.addRecord(table, record, 0);
+            return true;
+
         }
-        for (Page page : tablePages) {
+        for (int i = 0; i < tablePages.size();i++) {
+            Page page = tablePages.get(i);
             int canAdd = canAddRecord(table, page, record);
             if (canAdd != -1) {
                 if (!page.hasSpace()) {
-                    //TODO IMPLEMENT PAGE SPLITTING
-                    //cutRecords(itable, page, canAdd);
+                    cutRecords(itable, page, canAdd);
                 }
-                return page.addRecord(table, record);
+                return page.addRecord(table, record, canAdd);
             }
         }
-        return false;
+        Page p = addNewPage(table);
+        return p.addRecord(table, record, 0);
     }
 
     private int canAddRecord(Table table, Page page, ArrayList<Object> record) {
         int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
-        if (page.getRecords().size() == 0) {
-            return 0;
-        }
         Object recordVal = record.get(primaryKeyIndex);
-        int recordIndex = 0;
-        for (ArrayList<Object> recordList : page.getRecords()) {
-            if (recordVal instanceof Integer) {
-                if ((int) recordList.get(primaryKeyIndex) > (int) recordVal) {
-                    return recordIndex;
-                }
-            } else if (recordVal instanceof Double) {
-                if ((double) recordList.get(primaryKeyIndex) > (double) recordVal) {
-                    return recordIndex;
-                }
-            } else if (recordVal instanceof String || recordVal instanceof Character) {
-                if (((String) recordVal).compareTo(recordList.get(primaryKeyIndex).toString()) > 0) {
-                    return recordIndex;
-                }
+        if(page.getRecords().size() == 1){
+            Object compareVal = page.getRecords().get(0).get(primaryKeyIndex);
+            if(compareObjects(recordVal,compareVal)){
+                return 0;
+            }else{
+                return 1;
             }
-            recordIndex += 1;
         }
-        return recordIndex;
+        for (int i = 1; i < page.getRecords().size();i++) {
+            Object previousVal = page.getRecords().get(i-1).get(primaryKeyIndex);
+            Object compareVal = page.getRecords().get(i).get(primaryKeyIndex);
+            if(compareObjects(previousVal,recordVal) && compareObjects(recordVal,compareVal)){
+                return i;
+            }
+
+        }
+        return -1;
+    }
+
+    private boolean compareObjects(Object o1, Object o2){
+        if (o1 instanceof Integer) {
+            if ((int) o1 < (int) o2) {
+                return true;
+            }
+        } else if (o1 instanceof Double) {
+            if ((double) o1 < (double) o2) {
+                return true;
+            }
+        } else if (o1 instanceof String || o1 instanceof Character) {
+            if (((String) o1).compareTo((String) o2) < 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean updateRecord(ITable table, ArrayList<Object> oldRecord, ArrayList<Object> newRecord) {
@@ -254,12 +272,15 @@ public class BufferManager {
 
     public boolean cutRecords(ITable itable, Page page, int cutIndex) {
         Table table = (Table) itable;
-        ArrayList<ArrayList<Object>> firstHalfRecords = new ArrayList<ArrayList<Object>>(page.getRecords().subList(0, cutIndex));
-        ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<ArrayList<Object>>(page.getRecords().subList(cutIndex + 1, page.getRecords().size() - 1));
-        Page firstPage = new Page(table, pageIDIndex, firstHalfRecords);
-        Page secondPage = new Page(table, pageIDIndex + 1, secondHalfRecords);
+        if(page.getRecords().size() == 1 || cutIndex <=1){
+            return false;
+        }
+        ArrayList<ArrayList<Object>> firstHalfRecords = new ArrayList<>(page.getRecords().subList(0, cutIndex));
+        ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<>(page.getRecords().subList(cutIndex+1, page.getRecords().size()));
         removePageFromBuffer(table, page);
+        Page firstPage = new Page(table, pageIDIndex, firstHalfRecords);
         addPageToBuffer(table, firstPage);
+        Page secondPage = new Page(table, pageIDIndex, secondHalfRecords);
         addPageToBuffer(table, secondPage);
         return true;
     }

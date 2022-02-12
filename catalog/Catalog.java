@@ -30,7 +30,7 @@ public class Catalog extends ACatalog {
                 if (file.isFile()) {
                     if (file.getName().equals("catalog")) {
                         catalogFile = file;
-                        loadCatalogFromDisk();
+                        //loadCatalogFromDisk();
                     }
                 }
             }
