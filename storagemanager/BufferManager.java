@@ -189,9 +189,10 @@ public class BufferManager {
         for (Page page : tablePages) {
             int canAdd = canAddRecord(table, page, record);
             if (canAdd != -1) {
-                if (!page.hasSpace()) {
+                if (!page.hasSpace(record)) {
                     //TODO IMPLEMENT PAGE SPLITTING
-                    //cutRecords(itable, page, canAdd);
+//                    System.out.println("Current records: " + page.getRecords());
+                    cutRecords(itable, page, canAdd);
                 }
                 return page.addRecord(table, record);
             }
@@ -255,8 +256,15 @@ public class BufferManager {
 
     public boolean cutRecords(ITable itable, Page page, int cutIndex) {
         Table table = (Table) itable;
+
+//        System.out.println(page.getRecords()); // print all the records of the parent page
+
         ArrayList<ArrayList<Object>> firstHalfRecords = new ArrayList<ArrayList<Object>>(page.getRecords().subList(0, cutIndex));
         ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<ArrayList<Object>>(page.getRecords().subList(cutIndex + 1, page.getRecords().size() - 1));
+
+//        System.out.println("Here are the first half:" + firstHalfRecords);
+//        System.out.println("Here are the second half:" + secondHalfRecords);
+
         Page firstPage = new Page(table, pageIDIndex, firstHalfRecords);
         Page secondPage = new Page(table, pageIDIndex + 1, secondHalfRecords);
         removePageFromBuffer(table, page);
