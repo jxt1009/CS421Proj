@@ -60,8 +60,8 @@ public class StorageManager extends AStorageManager{
 
     @Override
     public void purgePageBuffer() {
-
         // TODO PAGE BUFFER PURGE
+        pageBuffer.clearPageBuffer();
     }
 
     @Override

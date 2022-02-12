@@ -56,6 +56,10 @@ public class BufferManager {
     public void clearPageBuffer() {
         // TODO CLEAR PAGE BUFFER
         // clear page buffer
+        for (Page page : buffer) {
+            writeToDisk(page.getTable(), page);
+        }
+        buffer.clear();
     }
 
     public void updateBuffer(Table table) {
