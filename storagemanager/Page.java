@@ -27,7 +27,6 @@ public class Page {
         this.pageId = pageId;
         table.addPage(pageId);
         File inputFile = new File(pageFileLocation);
-        System.out.println("READING IN PAGE FROM FILE");
         try {
             FileInputStream fin = new FileInputStream(inputFile);
             DataInputStream din = new DataInputStream(fin);

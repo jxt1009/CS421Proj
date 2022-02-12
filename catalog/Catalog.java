@@ -3,6 +3,7 @@ package catalog;
 import common.Attribute;
 import common.ITable;
 import common.Table;
+import storagemanager.FileManager;
 import storagemanager.Page;
 
 import java.io.*;
@@ -139,15 +140,12 @@ public class Catalog extends ACatalog {
             for(String t : tables.keySet()){
                 Table table = tables.get(t);
                 // Write out the length of the table name and the table name
-                dos.writeInt(table.getTableName().length());
-                dos.writeChars(table.getTableName());
+                FileManager.writeChars(table.getTableName(),dos);
                 // Write out the length of the attribute name and the name
-                dos.writeInt(table.getPrimaryKey().attributeName().length());
-                dos.writeChars(table.getPrimaryKey().attributeName());
+                FileManager.writeChars(table.getPrimaryKey().attributeName(),dos);
 
                 // Write out the length of the attribute type and the type
-                dos.writeInt(table.getPrimaryKey().attributeType().length());
-                dos.writeChars(table.getPrimaryKey().attributeType());
+                FileManager.writeChars(table.getPrimaryKey().attributeType(),dos);
 
                 // Write out the number of attributes before the attribute section
                 dos.writeInt(table.getAttributes().size());
@@ -155,12 +153,10 @@ public class Catalog extends ACatalog {
                 // Iterate through attributes and write out the len/value for each
                 for(Attribute attribute : table.getAttributes()){
                     // Write the length of the attribute name and value
-                    dos.writeInt(attribute.getAttributeName().length());
-                    dos.writeChars(attribute.getAttributeName());
+                    FileManager.writeChars(attribute.getAttributeName(),dos);
 
                     // Write the length of the attribute type and value
-                    dos.writeInt(attribute.getAttributeType().length());
-                    dos.writeChars(attribute.getAttributeType());
+                    FileManager.writeChars(attribute.getAttributeType(),dos);
                 }
 
                 // Write out length of page ID list
@@ -188,34 +184,24 @@ public class Catalog extends ACatalog {
             // Third int is the num of tables
             int numTables = dis.readInt();
             for(int i = 0; i < numTables;i++) {
-                // Get the length of string to read in
-                int tableNameLen = dis.readInt();
                 // Read in table name based on # of chars to parse
-                String tableName = readChars(tableNameLen, dis);
+                String tableName = FileManager.readChars(dis);
 
-                // Read in the length of the primaryKeyName
-                int primaryKeyNameLen = dis.readInt();
                 // Read in primary key name based on len
-                String primaryKeyName = readChars(primaryKeyNameLen, dis);
+                String primaryKeyName = FileManager.readChars(dis);
 
-                // Read in length of primary key type
-                int primaryKeyTypeLen = dis.readInt();
                 // Read in primary key type based on len
-                String primaryKeyType = readChars(primaryKeyTypeLen, dis);
+                String primaryKeyType = FileManager.readChars(dis);
 
                 // Parse num of attributes to read in
                 int numAttributes = dis.readInt();
                 ArrayList<Attribute> tableAttributes = new ArrayList<>();
                 for(int attrib = 0; attrib < numAttributes;attrib++){
-                    // Get length of attrib name to read in
-                    int attribNameLen = dis.readInt();
                     // Read in attrib name based on len
-                    String attribName = readChars(attribNameLen,dis);
+                    String attribName = FileManager.readChars(dis);
 
-                    // Get length of attrib type
-                    int attribTypeLen = dis.readInt();
                     // Read in attrib type with given len
-                    String attribType = readChars(attribTypeLen,dis);
+                    String attribType = FileManager.readChars(dis);
 
                     // Add new attribute to list for new table
                     tableAttributes.add(new Attribute(attribName,attribType));
@@ -239,17 +225,5 @@ public class Catalog extends ACatalog {
         }
     }
 
-    private String readChars(int len,DataInputStream in){
-        String finalString = "";
-        for(int i = 0; i < len; i ++){
-            try {
-                char c = in.readChar();
-                finalString += c;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return finalString;
-    }
 
 }

@@ -93,24 +93,25 @@ public class BufferManager {
                     } else if (type.startsWith("Varchar")) {
                         int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
                         String outputString = (String) record;
-                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
-                            if (readIndex > outputString.length() - 1) {
-                                outputStream.writeChar('\t');
-                            } else {
-                                outputStream.writeChar(outputString.charAt(readIndex));
-                            }
-                        }
+                        FileManager.writeChars(outputString, outputStream);
+//                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
+//                            if (readIndex > outputString.length() - 1) {
+//                                outputStream.writeChar('\t');
+//                            } else {
+//                                outputStream.writeChar(outputString.charAt(readIndex));
+//                            }
+//                        }
                     } else if (type.startsWith("Char")) {
                         int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
                         String outputString = (String) record;
-                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
-                            if (readIndex > outputString.length() - 1) {
-                                outputStream.writeChar('\t');
-                            } else {
-                                outputStream.writeChar(outputString.charAt(readIndex));
-                            }
-                        }
-                    } else {
+                        FileManager.writeChars(outputString, outputStream);
+//                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
+//                            if (readIndex > outputString.length() - 1) {
+//                                outputStream.writeChar('\t');
+//                            } else {
+//                                outputStream.writeChar(outputString.charAt(readIndex));
+//                            }
+//                        }
                     }
                 }
 
