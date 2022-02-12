@@ -56,6 +56,10 @@ public class BufferManager {
     public void clearPageBuffer() {
         // TODO CLEAR PAGE BUFFER
         // clear page buffer
+        for (Page page : buffer) {
+            writeToDisk(page.getTable(), page);
+        }
+        buffer.clear();
     }
 
     public void updateBuffer(Table table) {
@@ -93,23 +97,25 @@ public class BufferManager {
                     } else if (type.startsWith("Varchar")) {
                         int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
                         String outputString = (String) record;
-                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
-                            if (readIndex > outputString.length() - 1) {
-                                outputStream.writeChar('\t');
-                            } else {
-                                outputStream.writeChar(outputString.charAt(readIndex));
-                            }
-                        }
+                        FileManager.writeChars(outputString, outputStream);
+//                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
+//                            if (readIndex > outputString.length() - 1) {
+//                                outputStream.writeChar('\t');
+//                            } else {
+//                                outputStream.writeChar(outputString.charAt(readIndex));
+//                            }
+//                        }
                     } else if (type.startsWith("Char")) {
                         int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
                         String outputString = (String) record;
-                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
-                            if (readIndex > outputString.length() - 1) {
-                                outputStream.writeChar('\t');
-                            } else {
-                                outputStream.writeChar(outputString.charAt(readIndex));
-                            }
-                        }
+                        FileManager.writeChars(outputString, outputStream);
+//                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
+//                            if (readIndex > outputString.length() - 1) {
+//                                outputStream.writeChar('\t');
+//                            } else {
+//                                outputStream.writeChar(outputString.charAt(readIndex));
+//                            }
+//                        }
                     }
                 }
 
@@ -193,7 +199,9 @@ public class BufferManager {
             Page page = tablePages.get(i);
             int canAdd = canAddRecord(table, page, record);
             if (canAdd != -1) {
-                if (!page.hasSpace()) {
+                if (!page.hasSpace(record)) {
+                    //TODO IMPLEMENT PAGE SPLITTING
+//                    System.out.println("Current records: " + page.getRecords());
                     cutRecords(itable, page, canAdd);
                 }
                 return page.addRecord(table, record, canAdd);
@@ -277,6 +285,7 @@ public class BufferManager {
         }
         ArrayList<ArrayList<Object>> firstHalfRecords = new ArrayList<>(page.getRecords().subList(0, cutIndex));
         ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<>(page.getRecords().subList(cutIndex+1, page.getRecords().size()));
+
         removePageFromBuffer(table, page);
         Page firstPage = new Page(table, pageIDIndex, firstHalfRecords);
         addPageToBuffer(table, firstPage);
