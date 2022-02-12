@@ -110,7 +110,6 @@ public class BufferManager {
                                 outputStream.writeChar(outputString.charAt(readIndex));
                             }
                         }
-                    } else {
                     }
                 }
 
