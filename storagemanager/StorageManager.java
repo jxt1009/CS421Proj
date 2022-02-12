@@ -27,9 +27,8 @@ public class StorageManager extends AStorageManager{
             }
             return true;
         }
-        else{
+        else
             return false;
-        }
 
     }
 
@@ -64,15 +63,35 @@ public class StorageManager extends AStorageManager{
         pageBuffer.clearPageBuffer();
     }
 
+    /**
+     * Adds the provided default value to the end of all record in the provided table.
+     * @param table the table to add the attribute value to
+     * @param defaultValue the default value to add
+     * @return true if successful; false otherwise
+     */
     @Override
     public boolean addAttributeValue(ITable table, Object defaultValue) {
+
         // TODO ADD ATTRIBUTE VALUE
         return false;
     }
 
+    /**
+     * drops the attribute value at the provided index in the provided table.
+     *
+     * All other attribute values will be shifted down
+     *
+     * @param table the table to drop the attribute value from
+     * @param attrIndex the index of the attrbute value to drop.
+     * @return true if successful; false otherwise
+     */
     @Override
     public boolean dropAttributeValue(ITable table, int attrIndex) {
-        // TODO DROP ATTRIBUTE VALUE
+        ArrayList attributes = table.getAttributes();
+        if(attributes.size() != 0){
+            attributes.remove(attrIndex);
+            return true;
+        }
         return false;
     }
 }
