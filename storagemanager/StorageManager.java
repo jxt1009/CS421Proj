@@ -1,5 +1,6 @@
 package storagemanager;
 
+import common.Attribute;
 import common.ITable;
 import common.Table;
 
@@ -17,8 +18,19 @@ public class StorageManager extends AStorageManager{
 
     @Override
     public boolean clearTableData(ITable table) {
+        ArrayList attributes = table.getAttributes();
         // iterate through attribs of table and call dropAttribute one by one
-        return false;
+        if(attributes.size()!=0){
+            for (int i =0; i <attributes.size(); i++){
+                Attribute attribute = (Attribute) attributes.get(i);
+                table.dropAttribute(attribute.attributeName());
+            }
+            return true;
+        }
+        else{
+            return false;
+        }
+
     }
 
     @Override
@@ -48,6 +60,7 @@ public class StorageManager extends AStorageManager{
 
     @Override
     public void purgePageBuffer() {
+
         // TODO PAGE BUFFER PURGE
     }
 
