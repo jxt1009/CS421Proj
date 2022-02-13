@@ -12,8 +12,8 @@ public class Page {
 
     private final Table table;
     private ArrayList<ArrayList<Object>> records = new ArrayList<>();
-    private int pageId;
-    private int pageSize;
+    private final int pageId;
+    private final int pageSize;
 
     public Page(Table table, int pageId){
         this.table = table;
@@ -24,13 +24,12 @@ public class Page {
 
     public Page(Table table, String pageFileLocation, int pageId) {
         this.table = table;
-        this.pageId = pageId;
-        table.addPage(pageId);
+        this.pageSize = ACatalog.getCatalog().getPageSize();
         File inputFile = new File(pageFileLocation);
         try {
             FileInputStream fin = new FileInputStream(inputFile);
             DataInputStream din = new DataInputStream(fin);
-            this.pageId = din.readInt();
+            pageId = din.readInt();
             int totalStoredRecords = din.readInt();
             for (int i = 0; i < totalStoredRecords; i++){
                 ArrayList<Object> record = new ArrayList<>();
@@ -43,22 +42,17 @@ public class Page {
                     }else if (type.equals("Boolean")) {
                         record.add(din.readBoolean());
                     }else if (type.startsWith("Varchar")) {
-                        int charLen = Integer.parseInt(type.substring(type.indexOf("(")+1,type.indexOf(")")));
-                        String inputChar = "";
-                        for(int readIndex = 0; readIndex < charLen;readIndex++) {
-                            char c = din.readChar();
-                            if(c != '\t') inputChar += c;
-                        }
-                        record.add(inputChar);
+                        record.add(FileManager.readChars(din));
                     }else if (type.startsWith("Char")) {
-                        int charLen = Integer.parseInt(type.substring(type.indexOf("(")+1,type.indexOf(")")));
-                        String inputChar = "";
-                        for(int readIndex = 0; readIndex < charLen;readIndex++) {
+                        int charLen = din.readInt();
+                        String outputString = "";
+                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
                             char c = din.readChar();
-                            if(c != '\t') inputChar += c;
+                            if (c!='\t') {
+                               outputString += c;
+                            }
                         }
-                        record.add(inputChar);
-                    }else{
+                        record.add(outputString);
                     }
                 }
                 records.add(record);
@@ -68,17 +62,24 @@ public class Page {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.pageId = pageId;
+        table.addPage(pageId);
     }
 
     public Page(Table table, int pageId, ArrayList<ArrayList<Object>> records) {
         this.table = table;
         this.pageId = pageId;
         this.records = records;
+        this.pageSize = ACatalog.getCatalog().getPageSize();
         table.addPage(pageId);
     }
 
     public Integer getPageId(){
         return pageId;
+    }
+
+    public Object getSmallestPrimaryKey(){
+        return this.records.get(0).get(table.getAttributes().indexOf(table.getPrimaryKey()));
     }
 
     public ArrayList<ArrayList<Object>> getRecords(){
@@ -120,8 +121,6 @@ public class Page {
             e.printStackTrace();
         }
         int numBytes = baos.toByteArray().length;
-//        System.out.println("RECORDS ARRAYLIST HAS: " + numBytes + " NUMBER OF BYTES\n");
-//        System.out.println(numBytes < pageSize);
         return numBytes < pageSize;
     }
 
@@ -136,4 +135,9 @@ public class Page {
     public Table getTable() {
         return table;
     }
+
+    public String toString(){
+        return "Page ID: "+pageId +"|";
+    }
+
 }

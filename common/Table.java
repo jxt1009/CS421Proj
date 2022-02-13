@@ -12,8 +12,8 @@ public class Table implements ITable {
     private final Attribute primaryKey;
     private ForeignKey foreignKey;
     private String index;
-    private ArrayList<ForeignKey> lstForeignKeys = new ArrayList<ForeignKey>();
-    private ArrayList<Integer> pageList = new ArrayList<>();
+    private final ArrayList<ForeignKey> lstForeignKeys = new ArrayList<ForeignKey>();
+    private final ArrayList<Integer> pageList = new ArrayList<>();
 
     public Table(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
         this.tableName = tableName;
@@ -117,10 +117,10 @@ public class Table implements ITable {
 
     public boolean removePage(Page page) {
         if (pageList.contains(page.getPageId())) {
-            return false;
+            pageList.remove(page.getPageId());
+            return true;
         }
-        pageList.remove(page.getPageId());
-        return true;
+        return false;
     }
 
     public ArrayList<Integer> getPageList() {

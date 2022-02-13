@@ -6,24 +6,19 @@ import common.ITable;
 import common.Table;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Objects;
+import java.util.*;
 
 public class BufferManager {
 
-    private FileOutputStream fileOutputStream;
-    private ArrayList<Page> buffer = new ArrayList<>();
-    private int pageSize;
-    private int pageLimit;
-    private String location;
-    private String pageFolder;
-    private File pageDir;
+    private final ArrayList<Page> buffer = new ArrayList<>();
+    private final int pageLimit;
+    private final String pageFolder;
+    private final File pageDir;
     private int pageIDIndex = 0;
 
     public BufferManager() {
         this.pageLimit = ACatalog.getCatalog().getPageBufferSize();
-        this.pageSize = ACatalog.getCatalog().getPageSize();
-        this.location = ACatalog.getCatalog().getDbLocation();
+        String location = ACatalog.getCatalog().getDbLocation();
         this.pageFolder = location + "/pages";
         this.pageDir = new File(pageFolder);
         if (!pageDir.exists()) {
@@ -32,15 +27,16 @@ public class BufferManager {
     }
 
     public ArrayList<Page> loadAllPages(Table table) {
-        ArrayList<Page> pages = new ArrayList<Page>();
+        ArrayList<Page> pages = new ArrayList<>();
         for (Integer fileName : table.getPageList()) {
             Page page = findPageInBuffer(fileName);
             if (page == null) {
                 page = new Page(table, pageDir.getPath() + "/" + fileName, fileName);
-                addPageToBuffer(table, page);
+                addPageToBuffer(page);
             }
             pages.add(page);
         }
+        Collections.sort(pages, (p1, p2) -> compareObjects(p1.getSmallestPrimaryKey(), p2.getSmallestPrimaryKey()) ? -1 : 1);
         return pages;
     }
 
@@ -54,23 +50,21 @@ public class BufferManager {
     }
 
     public void clearPageBuffer() {
-        // TODO CLEAR PAGE BUFFER
-        // clear page buffer
         for (Page page : buffer) {
-            writeToDisk(page.getTable(), page);
+            writeToDisk(page);
         }
         buffer.clear();
     }
 
-    public void updateBuffer(Table table) {
+    public void updateBuffer() {
         while (buffer.size() > pageLimit) {
             Page p = buffer.get(0);
             buffer.remove(0);
-            writeToDisk(p.getTable(), p);
+            writeToDisk(p);
         }
     }
 
-    private void writeToDisk(Table table, Page p) {
+    private void writeToDisk(Page p) {
         if (!pageDir.exists()) {
             pageDir.mkdirs();
         }
@@ -95,27 +89,19 @@ public class BufferManager {
                     } else if (type.equals("Boolean")) {
                         outputStream.writeBoolean((Boolean) record);
                     } else if (type.startsWith("Varchar")) {
-                        int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
                         String outputString = (String) record;
                         FileManager.writeChars(outputString, outputStream);
-//                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
-//                            if (readIndex > outputString.length() - 1) {
-//                                outputStream.writeChar('\t');
-//                            } else {
-//                                outputStream.writeChar(outputString.charAt(readIndex));
-//                            }
-//                        }
                     } else if (type.startsWith("Char")) {
                         int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
                         String outputString = (String) record;
                         FileManager.writeChars(outputString, outputStream);
-//                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
-//                            if (readIndex > outputString.length() - 1) {
-//                                outputStream.writeChar('\t');
-//                            } else {
-//                                outputStream.writeChar(outputString.charAt(readIndex));
-//                            }
-//                        }
+                        for (int readIndex = 0; readIndex < charLen; readIndex++) {
+                            if (readIndex > outputString.length() - 1) {
+                                outputStream.writeChar('\t');
+                            } else {
+                                outputStream.writeChar(outputString.charAt(readIndex));
+                            }
+                        }
                     }
                 }
 
@@ -127,17 +113,18 @@ public class BufferManager {
         }
     }
 
-    private void addPageToBuffer(Table table, Page page) {
-        if (!buffer.contains(page)) {
-            buffer.add(page);
-            updateBuffer(table);
-            pageIDIndex += 1;
+    private void addPageToBuffer(Page page) {
+        if (buffer.contains(page)) {
+            buffer.remove(page);
         }
+        buffer.add(page);
+        updateBuffer();
     }
 
     private Page addNewPage(Table table) {
+        pageIDIndex += 1;
         Page page = new Page(table, pageIDIndex);
-        addPageToBuffer(table, page);
+        addPageToBuffer(page);
         return page;
     }
 
@@ -177,14 +164,13 @@ public class BufferManager {
     public ArrayList<ArrayList<Object>> getAllRecords(ITable table) {
         Table castedTable = (Table) table;
         ArrayList<Page> tablePages = loadAllPages(castedTable);
-        //System.out.println(((Table) table).getPageList().size() + " " +tablePages.size());
         ArrayList<ArrayList<Object>> allRecords = new ArrayList<>();
         for (Page page : tablePages) {
             allRecords.addAll(page.getRecords());
         }
-        //System.out.println(allRecords.size());
         return allRecords;
     }
+
 
     public boolean insertRecord(ITable itable, ArrayList<Object> record) {
         Table table = (Table) itable;
@@ -195,45 +181,46 @@ public class BufferManager {
             return true;
 
         }
-        for (int i = 0; i < tablePages.size();i++) {
+        for (int i = 0; i < tablePages.size(); i++) {
             Page page = tablePages.get(i);
             int canAdd = canAddRecord(table, page, record);
             if (canAdd != -1) {
                 if (!page.hasSpace(record)) {
-                    //TODO IMPLEMENT PAGE SPLITTING
-//                    System.out.println("Current records: " + page.getRecords());
-                    cutRecords(itable, page, canAdd);
+                    page = cutRecords(table, page, canAdd);
                 }
                 return page.addRecord(table, record, canAdd);
             }
         }
-        Page p = addNewPage(table);
-        return p.addRecord(table, record, 0);
+        Page p = tablePages.get(tablePages.size()-1);
+        p.addRecord(table, record, p.getRecords().size());
+        return true;
     }
 
     private int canAddRecord(Table table, Page page, ArrayList<Object> record) {
         int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
         Object recordVal = record.get(primaryKeyIndex);
-        if(page.getRecords().size() == 1){
+        if (page.getRecords().size() == 1) {
             Object compareVal = page.getRecords().get(0).get(primaryKeyIndex);
-            if(compareObjects(recordVal,compareVal)){
+            if (compareObjects(recordVal, compareVal)) {
                 return 0;
-            }else{
+            } else {
                 return 1;
             }
         }
-        for (int i = 1; i < page.getRecords().size();i++) {
-            Object previousVal = page.getRecords().get(i-1).get(primaryKeyIndex);
+        for (int i = 1; i < page.getRecords().size(); i++) {
+            Object previousVal = page.getRecords().get(i - 1).get(primaryKeyIndex);
             Object compareVal = page.getRecords().get(i).get(primaryKeyIndex);
-            if(compareObjects(previousVal,recordVal) && compareObjects(recordVal,compareVal)){
+            if (compareObjects(previousVal, recordVal) && compareObjects(recordVal, compareVal)) {
                 return i;
             }
-
+            if (i == 1 && compareObjects(recordVal, previousVal)) {
+                return 0;
+            }
         }
         return -1;
     }
 
-    private boolean compareObjects(Object o1, Object o2){
+    private boolean compareObjects(Object o1, Object o2) {
         if (o1 instanceof Integer) {
             if ((int) o1 < (int) o2) {
                 return true;
@@ -278,24 +265,24 @@ public class BufferManager {
         return false;
     }
 
-    public boolean cutRecords(ITable itable, Page page, int cutIndex) {
+    public Page cutRecords(ITable itable, Page page, int cutIndex) {
         Table table = (Table) itable;
-        if(page.getRecords().size() == 1 || cutIndex <=1){
-            return false;
-        }
         ArrayList<ArrayList<Object>> firstHalfRecords = new ArrayList<>(page.getRecords().subList(0, cutIndex));
-        ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<>(page.getRecords().subList(cutIndex+1, page.getRecords().size()));
-
+        ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<>(page.getRecords().subList(cutIndex, page.getRecords().size()));
         removePageFromBuffer(table, page);
+        pageIDIndex += 1;
         Page firstPage = new Page(table, pageIDIndex, firstHalfRecords);
-        addPageToBuffer(table, firstPage);
+        addPageToBuffer(firstPage);
+        pageIDIndex += 1;
         Page secondPage = new Page(table, pageIDIndex, secondHalfRecords);
-        addPageToBuffer(table, secondPage);
-        return true;
+        addPageToBuffer(secondPage);
+        return firstPage;
     }
 
     private void removePageFromBuffer(Table table, Page page) {
         table.removePage(page);
         buffer.remove(page);
+        File pageFile = new File(pageFolder + "/" + page.getPageId());
+        pageFile.delete();
     }
 }
