@@ -18,7 +18,6 @@ public class Catalog extends ACatalog {
     private File catalogFile;
     HashMap<String,Table> tables = new HashMap<String,Table>();
 
-
     public Catalog(String location, int pageSize, int pageBufferSize) {
         this.location = location;
         this.pageSize = pageSize;
@@ -30,7 +29,7 @@ public class Catalog extends ACatalog {
                 if (file.isFile()) {
                     if (file.getName().equals("catalog")) {
                         catalogFile = file;
-                        //loadCatalogFromDisk();
+                        loadCatalogFromDisk();
                     }
                 }
             }
@@ -104,9 +103,9 @@ public class Catalog extends ACatalog {
     public boolean clearTable(String tableName) {
         // TODO
         if(containsTable(tableName)){
-            for(int i=0;i < tables.size();i++){
-                Table remove = tables.remove(i);
-            }
+            Table table = (Table) getTable(tableName);
+            table.getAttributes().clear();
+            table.getPageList().clear();
             return true;
         }
         else {

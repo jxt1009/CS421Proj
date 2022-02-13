@@ -14,13 +14,18 @@ public class Table implements ITable {
     private String index;
     private final ArrayList<ForeignKey> lstForeignKeys = new ArrayList<ForeignKey>();
     private final ArrayList<Integer> pageList = new ArrayList<>();
+    private int primaryKeyIndex;
 
     public Table(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
         this.tableName = tableName;
         this.lstAttribute = attributes;
         this.primaryKey = primaryKey;
+        primaryKeyIndex = attributes.indexOf(primaryKey);
     }
 
+    public int getPrimaryKeyIndex(){
+        return primaryKeyIndex;
+    }
 
     @Override
     public String getTableName() {
@@ -127,4 +132,12 @@ public class Table implements ITable {
         return pageList;
     }
 
+    public void insertPage(Integer pageId, Integer pageId1, Integer pageId2) {
+        int index = pageList.indexOf(pageId);
+        //System.out.println(pageList);
+        pageList.remove(pageId);
+        pageList.add(index,pageId1);
+        pageList.add(index+1,pageId2);
+        //System.out.println(pageList);
+    }
 }

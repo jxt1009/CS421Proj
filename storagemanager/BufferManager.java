@@ -33,10 +33,10 @@ public class BufferManager {
             if (page == null) {
                 page = new Page(table, pageDir.getPath() + "/" + fileName, fileName);
                 addPageToBuffer(page);
+                table.addPage(fileName);
             }
             pages.add(page);
         }
-        Collections.sort(pages, (p1, p2) -> compareObjects(p1.getSmallestPrimaryKey(), p2.getSmallestPrimaryKey()) ? -1 : 1);
         return pages;
     }
 
@@ -59,6 +59,10 @@ public class BufferManager {
     public void updateBuffer() {
         while (buffer.size() > pageLimit) {
             Page p = buffer.get(0);
+            if(!p.hasSpace(null)){
+                cutRecords(p.getTable(),p,p.getRecords().size()/2);
+                continue;
+            }
             buffer.remove(0);
             writeToDisk(p);
         }
@@ -94,7 +98,7 @@ public class BufferManager {
                     } else if (type.startsWith("Char")) {
                         int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
                         String outputString = (String) record;
-                        FileManager.writeChars(outputString, outputStream);
+                        outputStream.writeInt(charLen);
                         for (int readIndex = 0; readIndex < charLen; readIndex++) {
                             if (readIndex > outputString.length() - 1) {
                                 outputStream.writeChar('\t');
@@ -107,6 +111,7 @@ public class BufferManager {
 
             }
             outputStream.close();
+            //System.out.println(outputStream.size());
             fileOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,17 +119,16 @@ public class BufferManager {
     }
 
     private void addPageToBuffer(Page page) {
-        if (buffer.contains(page)) {
-            buffer.remove(page);
-        }
+        buffer.remove(page);
         buffer.add(page);
-        updateBuffer();
     }
 
     private Page addNewPage(Table table) {
         pageIDIndex += 1;
         Page page = new Page(table, pageIDIndex);
+        table.addPage(page.getPageId());
         addPageToBuffer(page);
+        updateBuffer();
         return page;
     }
 
@@ -137,16 +141,18 @@ public class BufferManager {
                 ArrayList<Object> record = searchPage.getRecords().get(i);
                 Object primaryKeyValue = record.get(primaryKeyIndex);
                 if (primaryKeyValue != null && primaryKeyValue.equals(pkValue)) {
+                    updateBuffer();
                     return record;
                 }
             }
         }
+        updateBuffer();
         return null;
     }
 
     private Page searchForPage(ITable itable, Object pkValue) {
         Table table = (Table) itable;
-        int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
+        int primaryKeyIndex = table.getPrimaryKeyIndex();
         for (Page page : loadAllPages(table)) {
             if (page.getRecords().size() > 0) {
                 for (int i = 0; i < page.getRecords().size(); i++) {
@@ -171,7 +177,6 @@ public class BufferManager {
         return allRecords;
     }
 
-
     public boolean insertRecord(ITable itable, ArrayList<Object> record) {
         Table table = (Table) itable;
         ArrayList<Page> tablePages = loadAllPages(table);
@@ -193,14 +198,14 @@ public class BufferManager {
         }
         Page p = tablePages.get(tablePages.size()-1);
         p.addRecord(table, record, p.getRecords().size());
+        updateBuffer();
         return true;
     }
 
     private int canAddRecord(Table table, Page page, ArrayList<Object> record) {
-        int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
-        Object recordVal = record.get(primaryKeyIndex);
+        Object recordVal = record.get( table.getPrimaryKeyIndex());
         if (page.getRecords().size() == 1) {
-            Object compareVal = page.getRecords().get(0).get(primaryKeyIndex);
+            Object compareVal = page.getRecords().get(0).get( table.getPrimaryKeyIndex());
             if (compareObjects(recordVal, compareVal)) {
                 return 0;
             } else {
@@ -208,8 +213,8 @@ public class BufferManager {
             }
         }
         for (int i = 1; i < page.getRecords().size(); i++) {
-            Object previousVal = page.getRecords().get(i - 1).get(primaryKeyIndex);
-            Object compareVal = page.getRecords().get(i).get(primaryKeyIndex);
+            Object previousVal = page.getRecords().get(i - 1).get( table.getPrimaryKeyIndex());
+            Object compareVal = page.getRecords().get(i).get( table.getPrimaryKeyIndex());
             if (compareObjects(previousVal, recordVal) && compareObjects(recordVal, compareVal)) {
                 return i;
             }
@@ -238,25 +243,25 @@ public class BufferManager {
     }
 
     public boolean updateRecord(ITable table, ArrayList<Object> oldRecord, ArrayList<Object> newRecord) {
-        int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
-        Object primaryKey = oldRecord.get(primaryKeyIndex);
+        Object primaryKey = oldRecord.get(((Table) table).getPrimaryKeyIndex());
         Page updatePage = searchForPage(table, primaryKey);
         if (updatePage != null) {
             return updatePage.updateRecord(table, primaryKey, newRecord);
         }
+        updateBuffer();
         return false;
     }
 
     public boolean deleteRecord(ITable itable, Object pkValue) {
         Table table = (Table) itable;
-        int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
         for (Page page : loadAllPages(table)) {
             if (page.getRecords().size() > 0) {
                 for (int i = 0; i < page.getRecords().size(); i++) {
                     ArrayList<Object> record = page.getRecords().get(i);
-                    Object primaryKeyValue = record.get(primaryKeyIndex);
+                    Object primaryKeyValue = record.get(table.getPrimaryKeyIndex());
                     if (primaryKeyValue != null && primaryKeyValue.equals(pkValue)) {
                         page.getRecords().remove(i);
+                        updateBuffer();
                         return true;
                     }
                 }
@@ -275,14 +280,13 @@ public class BufferManager {
         addPageToBuffer(firstPage);
         pageIDIndex += 1;
         Page secondPage = new Page(table, pageIDIndex, secondHalfRecords);
+        table.insertPage(page.getPageId(),firstPage.getPageId(),secondPage.getPageId());
         addPageToBuffer(secondPage);
         return firstPage;
     }
 
     private void removePageFromBuffer(Table table, Page page) {
-        table.removePage(page);
         buffer.remove(page);
-        File pageFile = new File(pageFolder + "/" + page.getPageId());
-        pageFile.delete();
+        new File(pageFolder + "/" + page.getPageId()).delete();
     }
 }

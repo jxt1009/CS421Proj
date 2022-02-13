@@ -6,6 +6,7 @@ import common.ITable;
 import common.Table;
 
 import java.io.*;
+import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 
 public class Page {
@@ -19,7 +20,6 @@ public class Page {
         this.table = table;
         this.pageId = pageId;
         this.pageSize = ACatalog.getCatalog().getPageSize();
-        table.addPage(pageId);
     }
 
     public Page(Table table, String pageFileLocation, int pageId) {
@@ -63,7 +63,6 @@ public class Page {
             e.printStackTrace();
         }
         this.pageId = pageId;
-        table.addPage(pageId);
     }
 
     public Page(Table table, int pageId, ArrayList<ArrayList<Object>> records) {
@@ -71,7 +70,6 @@ public class Page {
         this.pageId = pageId;
         this.records = records;
         this.pageSize = ACatalog.getCatalog().getPageSize();
-        table.addPage(pageId);
     }
 
     public Integer getPageId(){
