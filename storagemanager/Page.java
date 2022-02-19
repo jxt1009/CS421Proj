@@ -129,9 +129,9 @@ public class Page {
             return 1;
         } else if (type.startsWith("Varchar")) {
             String outputString = (String) record;
-            return (outputString.length() * 2) + 2;
+            return (outputString.length() * 2) + 6;
         } else if (type.startsWith("Char")) {
-            return Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")"))) * 2;
+            return (Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")"))) * 2) + 4;
         }
         return 0;
     }
