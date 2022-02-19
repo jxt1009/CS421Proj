@@ -59,7 +59,7 @@ public class BufferManager {
     public void updateBuffer() {
         while (buffer.size() > pageLimit) {
             Page p = buffer.get(0);
-            if(!p.hasSpace(null)){
+            if(!p.hasSpace()){
                 cutRecords(p.getTable(),p,p.getRecords().size()/2);
                 continue;
             }
@@ -190,7 +190,7 @@ public class BufferManager {
             Page page = tablePages.get(i);
             int canAdd = canAddRecord(table, page, record);
             if (canAdd != -1) {
-                if (!page.hasSpace(record)) {
+                if (!page.hasSpace()) {
                     page = cutRecords(table, page, canAdd);
                 }
                 return page.addRecord(table, record, canAdd);
