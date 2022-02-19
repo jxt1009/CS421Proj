@@ -24,6 +24,8 @@ public class Database {
     }
 
     public static ResultSet executeQuery(String query){
+
+        //NOT FOR THIS PHASE
         return null;
     }
 
