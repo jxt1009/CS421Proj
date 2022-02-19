@@ -181,6 +181,10 @@ public class BufferManager {
     public boolean insertRecord(ITable itable, ArrayList<Object> record) {
         Table table = (Table) itable;
         ArrayList<Page> tablePages = loadAllPages(table);
+        if (record == null) {
+            System.err.println("Record cannot be null.");
+            return false;
+        }
         if (tablePages.size() == 0) {
             Page p = addNewPage(table);
             p.addRecord(table, record, 0);
