@@ -20,8 +20,6 @@ public class Catalog extends ACatalog {
 
     public Catalog(String location, int pageSize, int pageBufferSize) {
         this.location = location;
-        this.pageSize = pageSize;
-        this.pageBufferSize = pageBufferSize;
         File[] listOfFiles = new File(location).listFiles();
 
         if(listOfFiles != null && listOfFiles.length > 0) {
@@ -34,6 +32,8 @@ public class Catalog extends ACatalog {
                 }
             }
         }
+        this.pageSize = pageSize;
+        this.pageBufferSize = pageBufferSize;
     }
 
     @Override
@@ -101,7 +101,6 @@ public class Catalog extends ACatalog {
      */
     @Override
     public boolean clearTable(String tableName) {
-        // TODO
         if(containsTable(tableName)){
             Table table = (Table) getTable(tableName);
             table.getAttributes().clear();
@@ -179,6 +178,7 @@ public class Catalog extends ACatalog {
                 }
             }
         } catch (IOException e) {
+            System.err.println("Error writing catalog to disk");
             e.printStackTrace();
         }
         return false;
@@ -233,6 +233,7 @@ public class Catalog extends ACatalog {
             }
 
         } catch (IOException e) {
+            System.err.println("Error reading in catalog file. Delete the catalog from the database directory and try again");
             e.printStackTrace();
         }
     }
