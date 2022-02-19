@@ -114,6 +114,7 @@ public class BufferManager {
             //System.out.println(outputStream.size());
             fileOutputStream.close();
         } catch (IOException e) {
+            System.err.println("Error writing page file to disk: " + p);
             e.printStackTrace();
         }
     }
@@ -246,6 +247,7 @@ public class BufferManager {
         Object primaryKey = oldRecord.get(((Table) table).getPrimaryKeyIndex());
         Page updatePage = searchForPage(table, primaryKey);
         if (updatePage != null) {
+            updateBuffer();
             return updatePage.updateRecord(table, primaryKey, newRecord);
         }
         updateBuffer();
@@ -254,18 +256,12 @@ public class BufferManager {
 
     public boolean deleteRecord(ITable itable, Object pkValue) {
         Table table = (Table) itable;
-        for (Page page : loadAllPages(table)) {
-            if (page.getRecords().size() > 0) {
-                for (int i = 0; i < page.getRecords().size(); i++) {
-                    ArrayList<Object> record = page.getRecords().get(i);
-                    Object primaryKeyValue = record.get(table.getPrimaryKeyIndex());
-                    if (primaryKeyValue != null && primaryKeyValue.equals(pkValue)) {
-                        page.getRecords().remove(i);
-                        updateBuffer();
-                        return true;
-                    }
-                }
-            }
+        Page updatePage = searchForPage(table, pkValue);
+
+        if (updatePage != null) {
+            updatePage.deleteRecord(table,pkValue);
+            updateBuffer();
+            return true;
         }
         return false;
     }
