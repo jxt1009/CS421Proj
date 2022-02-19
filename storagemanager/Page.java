@@ -107,19 +107,33 @@ public class Page {
         return -1;
     }
 
-    public boolean hasSpace(ArrayList<Object> newRecord) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream out = null;
-        try {
-            out = new ObjectOutputStream(baos);
-            out.writeObject(records);
-            out.writeObject(newRecord);
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public boolean hasSpace() {
+        int currentSizeBytes = 0;
+        for (int i = 0; i < getRecords().size(); i++) {
+            ArrayList<Object> records = getRecords().get(i);
+            for (int j = 0; j < records.size(); j++) {
+                Object record = records.get(j);
+                String type = table.getAttributes().get(j).getAttributeType();
+                currentSizeBytes += getTypeBytes(record, type);
+            }
         }
-        int numBytes = baos.toByteArray().length;
-        return numBytes < pageSize;
+        return currentSizeBytes < pageSize;
+    }
+
+    private int getTypeBytes(Object record, String type) {
+        if (type.equals("Integer")) {
+            return 4;
+        } else if (type.equals("Double")) {
+            return 8;
+        } else if (type.equals("Boolean")) {
+            return 1;
+        } else if (type.startsWith("Varchar")) {
+            String outputString = (String) record;
+            return (outputString.length() * 2) + 2;
+        } else if (type.startsWith("Char")) {
+            return Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")"))) * 2;
+        }
+        return 0;
     }
 
     public boolean updateRecord(ITable table, Object primaryKey, ArrayList<Object> newRecord) {
