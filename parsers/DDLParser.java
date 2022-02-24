@@ -48,90 +48,8 @@ public class DDLParser {
      * @return true if successfully parsed/executed; false otherwise
      */
     public static boolean parseDDLStatement(String stmt) {
-        String[] ddlDetails = stmt.split(" ");
-        String instruction = ddlDetails[0];
-        String parendParams = stmt.substring(stmt.strip().indexOf('(') + 1); // Grab string within parenthesis
-        if (instruction.toLowerCase().startsWith("create")) { // Create statement
-            if (ddlDetails.length < 3) {
-                System.err.println("Not enough values entered for table creation");
-                return false;
-            }
-            String tableName = ddlDetails[2].split("\\(")[0]; // Grab the table name
-            //TODO check table name starts with alpha char and is only alphanumeric
-
-            // New table attributes
-            Attribute primaryKey = null;
-            ForeignKey foreignKey = null;
-            ArrayList<Attribute> tableAttributes = new ArrayList<>();
-
-            // Grab details within parenthesis, ex: (attr1 Integer, attr2 double);
-            parendParams = parendParams.substring(0, parendParams.length() - 2);
-
-            // Split param string on comma and iterate
-            for (String params : parendParams.split(",")) {
-                // Todo implement notnull constraint for attributes
-                params = params.strip(); // Clear whitespace chars
-                if (params.startsWith("primarykey")) { // If line is for primary key
-                    if (primaryKey != null) { // If a primary key already exists, throw error
-                        System.err.println("More than one primary key specified for table");
-                        return false;
-                    }
-                    // Grab primary key between parends
-                    String pKey = params.substring(params.indexOf('(') + 1, params.indexOf(')')).strip();
-                    // Key should already be defined, find it and set primarykey attribute equal to attribute from attr list
-                    for (Attribute attr : tableAttributes) {
-                        if (attr.attributeName().equals(pKey)) {
-                            primaryKey = attr;
-                            break;
-                        }
-                    }
-                    // If we got here and no primary key is found, throw error
-                    if (primaryKey == null) {
-                        System.err.println("Primary key not correctly defined in table creation");
-                        return false;
-                    }
-                } else if (params.startsWith("foreignkey")) {
-                    // Grab value inside first set of ()
-                    String fKey = params.substring(params.indexOf('(') + 1, params.indexOf(')')).strip();
-
-                    // Split the string on references and grab table name/primary column name
-                    String refParams = params.split("references")[1];
-                    String refKey = refParams.substring(refParams.indexOf('(') + 1, refParams.indexOf(')')).strip();
-                    String refTable = refParams.substring(0, refParams.indexOf('(')).strip();
-
-                    // Create new foreign key object
-                    foreignKey = new ForeignKey(refTable, refKey, fKey);
-                } else {
-                    String[] columnParams = params.split(" ");
-                    if (columnParams.length >= 2) {
-                        Attribute newAttr = new Attribute(columnParams[0].strip(), columnParams[1].strip());
-                        tableAttributes.add(newAttr);
-                        if (columnParams.length > 2) {
-                            if (columnParams[2].equalsIgnoreCase("primarykey")) {
-                                primaryKey = newAttr;
-                            }
-                        }
-                    } else {
-                        System.err.println("Not all parameters specified for " + params);
-                    }
-                }
-            }
-            if (primaryKey == null) {
-                System.err.println("Primary key attribute not specified in table declaration");
-                return false;
-            }
-            ITable newTable = catalog.addTable(tableName, tableAttributes, primaryKey);
-            if (newTable == null) {
-                System.err.println("Table already exists");
-                return false;
-            } else {
-                System.out.println("Added table " + tableName + " successfully");
-            }
-            if (foreignKey != null) {
-                catalog.getTable(tableName).addForeignKey(foreignKey);
-            }
-            return true;
-            //create <smth>
+        if (stmt.toLowerCase().startsWith("create table")) { // Create statement
+            return parseCreateClause(stmt);
         } else if (stmt.toLowerCase().startsWith("drop table")) {
             return dropInstruction(stmt.split(" ")[2].replace(";", "").strip());
         }else if (stmt.toLowerCase().startsWith("insert into")) {
@@ -142,12 +60,105 @@ public class DDLParser {
             return sm.insertRecord(table,record);
         }else if (stmt.toLowerCase().startsWith("update")) {
             String tableName = stmt.split("update")[1].split("set")[0].strip();
-            //TODO Implement WHERE clause
-            //Table table = (Table) catalog.getTable(tableName);
-            System.out.println(tableName);
-            return true;//sm.updateRecord(table,old_record,new_record);
+            Table table = (Table) catalog.getTable(tableName);
+
+            String where = stmt.strip().split("where")[1].strip();
+            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(where);
+            // where will likely return a list of tuples to work with? process after return
+            //System.out.println(tableName);
+            return true;
         }
 
+        return true;
+    }
+
+    private static ArrayList<ArrayList<Object>> parseWhereClause(String stmt) {
+        String[] ddlDetails = stmt.strip().split(" ");
+        // TODO Implement where
+        return null;
+    }
+
+    private static boolean parseCreateClause(String stmt) {
+        String[] ddlDetails = stmt.split(" ");
+        String parendParams = stmt.substring(stmt.strip().indexOf('(') + 1); // Grab string within parenthesis
+        if (ddlDetails.length < 3) {
+            System.err.println("Not enough values entered for table creation");
+            return false;
+        }
+        String tableName = ddlDetails[2].split("\\(")[0]; // Grab the table name
+        //TODO check table name starts with alpha char and is only alphanumeric
+
+        // New table attributes
+        Attribute primaryKey = null;
+        ForeignKey foreignKey = null;
+        ArrayList<Attribute> tableAttributes = new ArrayList<>();
+
+        // Grab details within parenthesis, ex: (attr1 Integer, attr2 double);
+        parendParams = parendParams.substring(0, parendParams.length() - 2);
+
+        // Split param string on comma and iterate
+        for (String params : parendParams.split(",")) {
+            // Todo implement notnull constraint for attributes
+            params = params.strip(); // Clear whitespace chars
+            if (params.startsWith("primarykey")) { // If line is for primary key
+                if (primaryKey != null) { // If a primary key already exists, throw error
+                    System.err.println("More than one primary key specified for table");
+                    return false;
+                }
+                // Grab primary key between parends
+                String pKey = params.substring(params.indexOf('(') + 1, params.indexOf(')')).strip();
+                // Key should already be defined, find it and set primarykey attribute equal to attribute from attr list
+                for (Attribute attr : tableAttributes) {
+                    if (attr.attributeName().equals(pKey)) {
+                        primaryKey = attr;
+                        break;
+                    }
+                }
+                // If we got here and no primary key is found, throw error
+                if (primaryKey == null) {
+                    System.err.println("Primary key not correctly defined in table creation");
+                    return false;
+                }
+            } else if (params.startsWith("foreignkey")) {
+                // Grab value inside first set of ()
+                String fKey = params.substring(params.indexOf('(') + 1, params.indexOf(')')).strip();
+
+                // Split the string on references and grab table name/primary column name
+                String refParams = params.split("references")[1];
+                String refKey = refParams.substring(refParams.indexOf('(') + 1, refParams.indexOf(')')).strip();
+                String refTable = refParams.substring(0, refParams.indexOf('(')).strip();
+
+                // Create new foreign key object
+                foreignKey = new ForeignKey(refTable, refKey, fKey);
+            } else {
+                String[] columnParams = params.split(" ");
+                if (columnParams.length >= 2) {
+                    Attribute newAttr = new Attribute(columnParams[0].strip(), columnParams[1].strip());
+                    tableAttributes.add(newAttr);
+                    if (columnParams.length > 2) {
+                        if (columnParams[2].equalsIgnoreCase("primarykey")) {
+                            primaryKey = newAttr;
+                        }
+                    }
+                } else {
+                    System.err.println("Not all parameters specified for " + params);
+                }
+            }
+        }
+        if (primaryKey == null) {
+            System.err.println("Primary key attribute not specified in table declaration");
+            return false;
+        }
+        ITable newTable = catalog.addTable(tableName, tableAttributes, primaryKey);
+        if (newTable == null) {
+            System.err.println("Table already exists");
+            return false;
+        } else {
+            System.out.println("Added table " + tableName + " successfully");
+        }
+        if (foreignKey != null) {
+            catalog.getTable(tableName).addForeignKey(foreignKey);
+        }
         return true;
     }
 }
