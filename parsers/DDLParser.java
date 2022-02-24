@@ -28,7 +28,7 @@ public class DDLParser {
     private static ACatalog catalog = ACatalog.getCatalog();
     private static AStorageManager sm = AStorageManager.getStorageManager();
 
-    public static boolean dropInstruction(String tableName) {
+    public static boolean parseDropClause(String tableName) {
         if (!catalog.containsTable(tableName)) {
             System.err.println("Table " + tableName + " does not exist in catalog");
             return false;
@@ -52,7 +52,7 @@ public class DDLParser {
         if (stmt.toLowerCase().startsWith("create table")) { // Create statement
             return parseCreateClause(stmt);
         } else if (stmt.toLowerCase().startsWith("drop table")) {
-            return dropInstruction(stmt.split(" ")[2].replace(";", "").strip());
+            return parseDropClause(stmt.split(" ")[2].replace(";", "").strip());
         }else if (stmt.toLowerCase().startsWith("insert into")) {
             String tableName = stmt.split("\\(")[0].split(" ")[2];
             String[] insertValues = stmt.split("\\(")[1].split("\\)")[0].strip().split(",");
@@ -68,6 +68,11 @@ public class DDLParser {
             // where will likely return a list of tuples to work with? process after return
             //System.out.println(tableName);
             return true;
+        }
+        //to do alter table instruction stuff
+        else if (stmt.toLowerCase().startsWith("alter table")){
+            String tableName = stmt.split("\\(")[0].split(" ")[2];
+            String instruction = stmt.split("\\(")[0].split(" ")[3];
         }
 
         return true;
