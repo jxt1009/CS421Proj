@@ -1,6 +1,10 @@
+import catalog.ACatalog;
+import parsers.DDLParser;
 import parsers.ResultSet;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Scanner;
 
 /*
     This is the main driver class for the database.
@@ -16,11 +20,31 @@ import java.util.ArrayList;
 public class Database {
 
     public static void main(String[] args) {
-
+        ACatalog.createCatalog(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]));
+        Scanner in = new Scanner(System.in);
+        String input = in.next();
+        while(!input.equalsIgnoreCase("quit")){
+            if(!input.endsWith(";")) {
+                input += " " + in.next();
+                continue;
+            }
+            if(input.toLowerCase().startsWith("create table")
+                    || input.toLowerCase().startsWith("drop table")
+                    || input.toLowerCase().startsWith("alter table")){
+                executeStatement(input);
+            }
+            input = in.next().toLowerCase();
+        }
+        if(terminateDatabase()){
+            System.out.println("Saved and closed database successfully");
+        }else{
+            System.err.println("Could not save and shutdown database");
+        }
     }
 
     public static boolean executeStatement(String stmt){
-        return false;
+        stmt = stmt.strip();
+        return DDLParser.parseDDLStatement(stmt);
     }
 
     public static ResultSet executeQuery(String query){

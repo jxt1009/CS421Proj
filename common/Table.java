@@ -120,24 +120,14 @@ public class Table implements ITable {
         return true;
     }
 
-    public boolean removePage(Page page) {
-        if (pageList.contains(page.getPageId())) {
-            pageList.remove(page.getPageId());
-            return true;
-        }
-        return false;
-    }
-
     public ArrayList<Integer> getPageList() {
         return pageList;
     }
 
     public void insertPage(Integer pageId, Integer pageId1, Integer pageId2) {
         int index = pageList.indexOf(pageId);
-        //System.out.println(pageList);
         pageList.remove(pageId);
         pageList.add(index,pageId1);
         pageList.add(index+1,pageId2);
-        //System.out.println(pageList);
     }
 }

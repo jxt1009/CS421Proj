@@ -86,11 +86,11 @@ public class BufferManager {
                 for (int j = 0; j < records.size(); j++) {
                     Object record = records.get(j);
                     String type = p.getTable().getAttributes().get(j).getAttributeType();
-                    if (type.equals("Integer")) {
+                    if (type.equalsIgnoreCase("Integer")) {
                         outputStream.writeInt((Integer) record);
-                    } else if (type.equals("Double")) {
+                    } else if (type.equalsIgnoreCase("Double")) {
                         outputStream.writeDouble((Double) record);
-                    } else if (type.equals("Boolean")) {
+                    } else if (type.equalsIgnoreCase("Boolean")) {
                         outputStream.writeBoolean((Boolean) record);
                     } else if (type.startsWith("Varchar")) {
                         String outputString = (String) record;
