@@ -35,6 +35,8 @@ public class DMLParser {
      * @return the data resulting from the query; null upon error.
      *         Note: No data and error are two different cases.
      */
+    //NOT FOR THIS PHASE - EVERYTHING IN THE SECOND PHASE HAS TO BE IMPLEMENTED
+    //IN THE PARSEDMLSTATEMENT FUNCTION
     public static ResultSet parseDMLQuery(String query){
         return null;
     }

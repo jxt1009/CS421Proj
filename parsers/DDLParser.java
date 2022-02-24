@@ -7,6 +7,7 @@ import common.ITable;
 import common.Table;
 import storagemanager.AStorageManager;
 
+import java.awt.desktop.SystemEventListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
@@ -86,7 +87,23 @@ public class DDLParser {
             return false;
         }
         String tableName = ddlDetails[2].split("\\(")[0]; // Grab the table name
-        //TODO check table name starts with alpha char and is only alphanumeric
+        //TODO check table name starts with alpha char and is only alphanumeric - DONE
+        //checking if table name starts with alpha char
+        char c = tableName.charAt(0);
+        if (!(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')){
+            System.err.println("The table name does not start with an alphabetic character.");
+        }
+        //checking if the table name is only alphanumeric
+        if(!(tableName.matches("^[a-zA-Z]*$"))){
+            System.err.println("The table name is not following the correct format.");
+        }
+        //checking if the table name is null - feel free to remove if this is redundant
+        if(tableName==null){
+            System.err.println("The table name is null.");
+        }
+
+
+
 
         // New table attributes
         Attribute primaryKey = null;
