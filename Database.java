@@ -28,10 +28,13 @@ public class Database {
                 input += " " + in.next();
                 continue;
             }
-            if(input.toLowerCase().startsWith("create table")
-                    || input.toLowerCase().startsWith("drop table")
-                    || input.toLowerCase().startsWith("alter table")){
-                executeStatement(input);
+            String[] inputStrings = input.split(";");
+            for(String inputString : inputStrings) {
+                if (inputString.toLowerCase().startsWith("create table")
+                        || inputString.toLowerCase().startsWith("drop table")
+                        || inputString.toLowerCase().startsWith("alter table")) {
+                    executeStatement(inputString);
+                }
             }
             input = in.next().toLowerCase();
         }

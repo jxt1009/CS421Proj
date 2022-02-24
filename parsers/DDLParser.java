@@ -76,7 +76,7 @@ public class DDLParser {
                         return false;
                     }
                     // Grab primary key between parends
-                    String pKey = params.substring(params.indexOf('(') + 1, params.indexOf(')'));
+                    String pKey = params.substring(params.indexOf('(') + 1, params.indexOf(')')).strip();
                     // Key should already be defined, find it and set primarykey attribute equal to attribute from attr list
                     for (Attribute attr : tableAttributes) {
                         if (attr.attributeName().equals(pKey)) {
@@ -90,17 +90,20 @@ public class DDLParser {
                         return false;
                     }
                 } else if (params.startsWith("foreignkey")) {
-                    String[] fKeyParams = params.split(" ");
+                    // Grab value inside first set of ()
+                    String fKey = params.substring(params.indexOf('(') + 1, params.indexOf(')')).strip();
 
-                    String fKey = fKeyParams[0].substring(fKeyParams[0].indexOf('(') + 1, fKeyParams[0].indexOf(')'));
-                    String refTable = fKeyParams[2].substring(0, fKeyParams[2].indexOf('('));
-                    String refKey = fKeyParams[2].substring(fKeyParams[2].indexOf('(') + 1, fKeyParams[2].indexOf(')'));
+                    // Split the string on references and grab table name/primary column name
+                    String refParams =params.split("references")[1];
+                    String refKey = refParams.substring(refParams.indexOf('(') + 1, refParams.indexOf(')')).strip();
+                    String refTable = refParams.substring(0,refParams.indexOf('(')).strip();
 
+                    // Create new foreign key object
                     foreignKey = new ForeignKey(refTable, refKey, fKey);
                 } else {
                     String[] columnParams = params.split(" ");
                     if (columnParams.length >= 2) {
-                        Attribute newAttr = new Attribute(columnParams[0], columnParams[1]);
+                        Attribute newAttr = new Attribute(columnParams[0].strip(), columnParams[1].strip());
                         tableAttributes.add(newAttr);
                         if (columnParams.length > 2) {
                             if (columnParams[2].equalsIgnoreCase("primarykey")) {
