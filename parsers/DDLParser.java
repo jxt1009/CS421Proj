@@ -83,17 +83,12 @@ public class DDLParser {
             String attributeType = stmt.split("\\(")[0].split(" ")[5];
             table.addAttribute(attributeName, attributeType);
             sm.addAttributeValue(table,null);   //adds null in each tuple
+            // todo - if given a default val, set the attribute to the default value
         }
         else if(instruction.equals("drop")){
             //eg. alter table foo drop name;
             table.dropAttribute(attributeName);
-        }
-        else if(instruction.equals("modify")){
-            //TODO - modify the data type of an attribute
-            //eg. alter table foo modify name char(20);
-            //i think the best way to do it is to make a method in the Table class
-            //which modifies the type of the attribute but i cannot think of a way to
-            //do that without literally creating a new table.
+            // TODO - maybe have to re set the record size
         }
         return true;
     }

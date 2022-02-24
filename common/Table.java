@@ -92,10 +92,6 @@ public class Table implements ITable {
         return false;
     }
 
-    public boolean modifyAttributeType(String newAttributeType){
-
-        return true;
-    }
 
     @Override
     public boolean addForeignKey(ForeignKey fk) {
