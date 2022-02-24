@@ -112,7 +112,6 @@ public class DDLParser {
                     }
                 }
             }
-            System.out.println(tableAttributes);
             if (primaryKey == null) {
                 System.err.println("Primary key attribute not specified in table declaration");
                 return false;
@@ -122,7 +121,7 @@ public class DDLParser {
                 System.err.println("Table already exists");
                 return false;
             }else{
-                System.out.println("added table " +tableName+ " successfully");
+                System.out.println("Added table " +tableName+ " successfully");
             }
             if (foreignKey != null) {
                 catalog.getTable(tableName).addForeignKey(foreignKey);
