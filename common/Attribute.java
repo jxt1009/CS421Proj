@@ -25,6 +25,13 @@ public record Attribute(String attributeName, String attributeType) {
     }
 
     /**
+     * change the type of the attribute
+     */
+    public boolean changeAttributeType(String attributeType){
+        return true;
+    }
+
+    /**
      * Used to print this attribute is a readable way
      * @return
      */

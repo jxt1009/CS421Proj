@@ -92,6 +92,11 @@ public class Table implements ITable {
         return false;
     }
 
+    public boolean modifyAttributeType(String newAttributeType){
+
+        return true;
+    }
+
     @Override
     public boolean addForeignKey(ForeignKey fk) {
         // Check that the foreign key object is not already set, if so return false

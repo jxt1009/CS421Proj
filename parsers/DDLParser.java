@@ -53,36 +53,56 @@ public class DDLParser {
             return parseCreateClause(stmt);
         } else if (stmt.toLowerCase().startsWith("drop table")) {
             return parseDropClause(stmt.split(" ")[2].replace(";", "").strip());
-        }else if (stmt.toLowerCase().startsWith("insert into")) {
-            String tableName = stmt.split("\\(")[0].split(" ")[2];
-            String[] insertValues = stmt.split("\\(")[1].split("\\)")[0].strip().split(",");
-            ArrayList<Object> record = new ArrayList<>(Arrays.asList(insertValues));
-            Table table = (Table) catalog.getTable(tableName);
-            return sm.insertRecord(table,record);
-        }else if (stmt.toLowerCase().startsWith("update")) {
-            String tableName = stmt.split("update")[1].split("set")[0].strip();
-            Table table = (Table) catalog.getTable(tableName);
-
-            String where = stmt.strip().split("where")[1].strip();
-            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(where);
-            // where will likely return a list of tuples to work with? process after return
-            //System.out.println(tableName);
-            return true;
         }
-        //to do alter table instruction stuff
+        //to do alter table <instruction> stuff
         else if (stmt.toLowerCase().startsWith("alter table")){
-            String tableName = stmt.split("\\(")[0].split(" ")[2];
-            String instruction = stmt.split("\\(")[0].split(" ")[3];
+            return parseAlterClause(stmt);
         }
-
         return true;
     }
 
-    private static ArrayList<ArrayList<Object>> parseWhereClause(String stmt) {
-        String[] ddlDetails = stmt.strip().split(" ");
-        // TODO Implement where
-        return null;
+
+    /**
+     * the method which the alter table part calls in the DMLParser method
+     * @param stmt
+     * @return
+     */
+    private static boolean parseAlterClause(String stmt){
+        String tableName = stmt.split("\\(")[0].split(" ")[2];
+        Table table = (Table) catalog.getTable(tableName);
+        if (!catalog.containsTable(tableName)) {
+            System.err.println("Table " + tableName + " does not exist in catalog");
+            return false;
+        }
+
+        String instruction = stmt.split("\\(")[0].split(" ")[3];
+        String attributeName = stmt.split("\\(")[0].split(" ")[4];
+
+        if(instruction.equals("add")){
+            //eg. alter table foo add name varchar(20);
+            String attributeType = stmt.split("\\(")[0].split(" ")[5];
+            table.addAttribute(attributeName, attributeType);
+            sm.addAttributeValue(table,null);   //adds null in each tuple
+        }
+        else if(instruction.equals("drop")){
+            //eg. alter table foo drop name;
+            table.dropAttribute(attributeName);
+        }
+        else if(instruction.equals("modify")){
+            //TODO - modify the data type of an attribute
+            //eg. alter table foo modify name char(20);
+            //i think the best way to do it is to make a method in the Table class
+            //which modifies the type of the attribute but i cannot think of a way to
+            //do that without literally creating a new table.
+        }
+        return true;
     }
+
+//    private static ArrayList<ArrayList<Object>> parseWhereClause(String stmt) {
+//        String[] ddlDetails = stmt.strip().split(" ");
+//        // TODO Implement where
+//        return null;
+//    }
 
     private static boolean parseCreateClause(String stmt) {
         String[] ddlDetails = stmt.split(" ");
@@ -183,4 +203,5 @@ public class DDLParser {
         }
         return true;
     }
+
 }
