@@ -1,6 +1,12 @@
 package parsers;
 
+import catalog.ACatalog;
+import common.Table;
+import storagemanager.AStorageManager;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Locale;
 
 /*
   Class for DML parser
@@ -15,6 +21,9 @@ import java.util.ArrayList;
  */
 public class DMLParser {
 
+    private static ACatalog catalog = ACatalog.getCatalog();
+    private static AStorageManager sm = AStorageManager.getStorageManager();
+
     /**
      * This function will parse and execute DML statements (insert, delete, update, etc)
      *
@@ -24,7 +33,39 @@ public class DMLParser {
      * @return true if successfully parsed/executed; false otherwise
      */
     public static boolean parseDMLStatement(String stmt){
+        if(stmt.toLowerCase().startsWith("insert into")){
+            //inserting tuple into table
+            String tableName = stmt.split("\\(")[0].split(" ")[2];
+            String[] insertValues = stmt.split("\\(")[1].split("\\)")[0].strip().split(",");
+            ArrayList<Object> record = new ArrayList<>(Arrays.asList(insertValues));
+            Table table = (Table) catalog.getTable(tableName);
+            return sm.insertRecord(table,record);
+        }
+
+        else if(stmt.toLowerCase().startsWith("delete from")){
+            //deleting from the table <name> based on a where clause
+
+        }
+        else if(stmt.toLowerCase().startsWith("update")){
+            String tableName = stmt.split("update")[1].split("set")[0].strip();
+            Table table = (Table) catalog.getTable(tableName);
+
+            String where = stmt.strip().split("where")[1].strip();
+            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(where);
+            // where will likely return a list of tuples to work with? process after return
+            //System.out.println(tableName);
+            return true;
+        }
+
+
         return true;
+    }
+
+
+    private static ArrayList<ArrayList<Object>> parseWhereClause(String stmt) {
+        String[] ddlDetails = stmt.strip().split(" ");
+        // TODO Implement where
+        return null;
     }
 
     /**
