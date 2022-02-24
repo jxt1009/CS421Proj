@@ -4,6 +4,7 @@ import catalog.ACatalog;
 import common.Attribute;
 import common.ForeignKey;
 import common.ITable;
+import common.Table;
 import storagemanager.AStorageManager;
 
 import java.util.ArrayList;
@@ -24,18 +25,18 @@ import java.util.Locale;
 public class DDLParser {
 
     private static ACatalog catalog = ACatalog.getCatalog();
-    private static AStorageManager sm;
+    private static AStorageManager sm = AStorageManager.getStorageManager();
 
     public static boolean dropInstruction(String tableName) {
-        if(!catalog.containsTable(tableName)){
+        if (!catalog.containsTable(tableName)) {
             System.err.println("Table " + tableName + " does not exist in catalog");
             return false;
         }
         boolean didDrop = catalog.dropTable(tableName);
-        if(didDrop){
-            System.out.println("Table "+tableName + " dropped successfully");
-        }else{
-            System.err.println("Table "+tableName+" could not be dropped");
+        if (didDrop) {
+            System.out.println("Table " + tableName + " dropped successfully");
+        } else {
+            System.err.println("Table " + tableName + " could not be dropped");
         }
         return didDrop;
     }
@@ -51,7 +52,7 @@ public class DDLParser {
         String instruction = ddlDetails[0];
         String parendParams = stmt.substring(stmt.strip().indexOf('(') + 1); // Grab string within parenthesis
         if (instruction.toLowerCase().startsWith("create")) { // Create statement
-            if(ddlDetails.length < 3){
+            if (ddlDetails.length < 3) {
                 System.err.println("Not enough values entered for table creation");
                 return false;
             }
@@ -94,9 +95,9 @@ public class DDLParser {
                     String fKey = params.substring(params.indexOf('(') + 1, params.indexOf(')')).strip();
 
                     // Split the string on references and grab table name/primary column name
-                    String refParams =params.split("references")[1];
+                    String refParams = params.split("references")[1];
                     String refKey = refParams.substring(refParams.indexOf('(') + 1, refParams.indexOf(')')).strip();
-                    String refTable = refParams.substring(0,refParams.indexOf('(')).strip();
+                    String refTable = refParams.substring(0, refParams.indexOf('(')).strip();
 
                     // Create new foreign key object
                     foreignKey = new ForeignKey(refTable, refKey, fKey);
@@ -123,15 +124,28 @@ public class DDLParser {
             if (newTable == null) {
                 System.err.println("Table already exists");
                 return false;
-            }else{
-                System.out.println("Added table " +tableName+ " successfully");
+            } else {
+                System.out.println("Added table " + tableName + " successfully");
             }
             if (foreignKey != null) {
                 catalog.getTable(tableName).addForeignKey(foreignKey);
             }
+            return true;
             //create <smth>
         } else if (stmt.toLowerCase().startsWith("drop table")) {
-            return dropInstruction(stmt.split(" ")[2].replace(";","").strip());
+            return dropInstruction(stmt.split(" ")[2].replace(";", "").strip());
+        }else if (stmt.toLowerCase().startsWith("insert into")) {
+            String tableName = stmt.split("\\(")[0].split(" ")[2];
+            String[] insertValues = stmt.split("\\(")[1].split("\\)")[0].strip().split(",");
+            ArrayList<Object> record = new ArrayList<>(Arrays.asList(insertValues));
+            Table table = (Table) catalog.getTable(tableName);
+            return sm.insertRecord(table,record);
+        }else if (stmt.toLowerCase().startsWith("update")) {
+            String tableName = stmt.split("update")[1].split("set")[0].strip();
+            //TODO Implement WHERE clause
+            //Table table = (Table) catalog.getTable(tableName);
+            System.out.println(tableName);
+            return true;//sm.updateRecord(table,old_record,new_record);
         }
 
         return true;

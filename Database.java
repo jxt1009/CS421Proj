@@ -1,6 +1,7 @@
 import catalog.ACatalog;
 import parsers.DDLParser;
 import parsers.ResultSet;
+import storagemanager.AStorageManager;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -21,8 +22,11 @@ public class Database {
 
     public static void main(String[] args) {
         ACatalog.createCatalog(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]));
+        AStorageManager.createStorageManager();
+
         Scanner in = new Scanner(System.in);
         String input = in.next();
+
         while(!input.equalsIgnoreCase("quit")){
             if(!input.endsWith(";")) {
                 input += " " + in.next();
@@ -32,6 +36,9 @@ public class Database {
             for(String inputString : inputStrings) {
                 if (inputString.toLowerCase().startsWith("create table")
                         || inputString.toLowerCase().startsWith("drop table")
+                        || inputString.toLowerCase().startsWith("insert")
+                        || inputString.toLowerCase().startsWith("update")
+                        || inputString.toLowerCase().startsWith("delete")
                         || inputString.toLowerCase().startsWith("alter table")) {
                     executeStatement(inputString);
                 }

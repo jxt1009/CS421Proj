@@ -208,6 +208,8 @@ public class BufferManager {
     }
 
     private int canAddRecord(Table table, Page page, ArrayList<Object> record) {
+        System.out.println(record.size());
+        System.out.println(table.getPrimaryKeyIndex());
         Object recordVal = record.get( table.getPrimaryKeyIndex());
         if (page.getRecords().size() == 1) {
             Object compareVal = page.getRecords().get(0).get( table.getPrimaryKeyIndex());
