@@ -40,7 +40,9 @@ public class Database {
                         || inputString.toLowerCase().startsWith("update")
                         || inputString.toLowerCase().startsWith("delete")
                         || inputString.toLowerCase().startsWith("alter table")) {
-                    executeStatement(inputString);
+                    if(executeStatement(inputString)){
+                        System.out.println("SUCCESS");
+                    }
                 }
             }
             input = in.next().toLowerCase();
@@ -53,7 +55,6 @@ public class Database {
     }
 
     public static boolean executeStatement(String stmt){
-        stmt = stmt.strip();
         return DDLParser.parseDDLStatement(stmt);
     }
 

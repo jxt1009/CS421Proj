@@ -49,6 +49,7 @@ public class DDLParser {
      * @return true if successfully parsed/executed; false otherwise
      */
     public static boolean parseDDLStatement(String stmt) {
+        stmt = stmt.strip();
         if (stmt.toLowerCase().startsWith("create table")) { // Create statement
             return parseCreateClause(stmt);
         } else if (stmt.toLowerCase().startsWith("drop table")) {
@@ -82,7 +83,14 @@ public class DDLParser {
             //eg. alter table foo add name varchar(20);
             String attributeType = stmt.split("\\(")[0].split(" ")[5];
             table.addAttribute(attributeName, attributeType);
-            sm.addAttributeValue(table,null);   //adds null in each tuple
+            boolean success = false;
+            if(stmt.contains("default")) {
+                Object value = stmt.split("default")[1].strip();
+                success = sm.addAttributeValue(table, value);   //adds null in each tuple
+            }else{
+                success = sm.addAttributeValue(table, null);   //adds null in each tuple
+            }
+            return success;
             // todo - if given a default val, set the attribute to the default value
         }
         else if(instruction.equals("drop")){
