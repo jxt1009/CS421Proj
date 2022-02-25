@@ -1,26 +1,29 @@
 package common;
 
-import storagemanager.Page;
-
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Table implements ITable {
 
     private String tableName;
     private int tableId;
-    private ArrayList<Attribute> lstAttribute = new ArrayList<Attribute>();
+
+    private ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    private final ArrayList<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
+    private ArrayList<Attribute> nonNullAttributes = new ArrayList<>();
     private final Attribute primaryKey;
+    private final int primaryKeyIndex;
     private ForeignKey foreignKey;
     private String index;
-    private final ArrayList<ForeignKey> lstForeignKeys = new ArrayList<ForeignKey>();
+
     private final ArrayList<Integer> pageList = new ArrayList<>();
-    private int primaryKeyIndex;
 
     public Table(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
         this.tableName = tableName;
-        this.lstAttribute = attributes;
+        this.attributes = attributes;
         this.primaryKey = primaryKey;
         primaryKeyIndex = attributes.indexOf(primaryKey);
+        nonNullAttributes.add(primaryKey);
     }
 
     public int getPrimaryKeyIndex(){
@@ -44,14 +47,14 @@ public class Table implements ITable {
 
     @Override
     public ArrayList<Attribute> getAttributes() {
-        return lstAttribute;
+        return attributes;
     }
 
     @Override
     public Attribute getAttrByName(String name) {
         // Iterate through attribute list to try and find a matching name
         // If not found, return null
-        for (Attribute attr : lstAttribute) {
+        for (Attribute attr : attributes) {
             if (attr.getAttributeName().equals(name)) {
                 return attr;
             }
@@ -66,7 +69,11 @@ public class Table implements ITable {
 
     @Override
     public ArrayList<ForeignKey> getForeignKeys() {
-        return lstForeignKeys;
+        return foreignKeys;
+    }
+
+    public void setNonNullAttribute(ArrayList<Attribute> nonnull){
+        this.nonNullAttributes = nonnull;
     }
 
     @Override
@@ -75,7 +82,7 @@ public class Table implements ITable {
         if (getAttrByName(name) != null) {
             return false;
         }
-        lstAttribute.add(new Attribute(name, type));
+        attributes.add(new Attribute(name, type));
         return true;
     }
 
@@ -83,9 +90,10 @@ public class Table implements ITable {
     public boolean dropAttribute(String name) {
         // Iterate through the list to try and find an attrib with the same name
         // If found, drop it and return true. If no match, fall back on returning false
-        for (Attribute attr : lstAttribute) {
+        for (Attribute attr : attributes) {
             if (attr.getAttributeName().equals(name)) {
-                lstAttribute.remove(attr);
+                attributes.remove(attr);
+                nonNullAttributes.remove(attr);
                 return true;
             }
         }
@@ -130,5 +138,15 @@ public class Table implements ITable {
         pageList.remove(pageId);
         pageList.add(index,pageId1);
         pageList.add(index+1,pageId2);
+    }
+
+    public boolean checkNonNullAttributes(ArrayList<Object> record) {
+        for(int i = 0; i < attributes.size();i++){
+            // If attribute is non null but record object is null, error
+            if(nonNullAttributes.contains(attributes.get(i)) && record.get(i).equals("null")){
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -185,6 +185,10 @@ public class BufferManager {
             System.err.println("Record cannot be null.");
             return false;
         }
+        if(!table.checkNonNullAttributes(record)){
+            System.err.println("Record contains null values in a non-null column.");
+            return false;
+        }
         if (tablePages.size() == 0) {
             Page p = addNewPage(table);
             p.addRecord(table, record, 0);
@@ -208,8 +212,6 @@ public class BufferManager {
     }
 
     private int canAddRecord(Table table, Page page, ArrayList<Object> record) {
-        System.out.println(record.size());
-        System.out.println(table.getPrimaryKeyIndex());
         Object recordVal = record.get( table.getPrimaryKeyIndex());
         if (page.getRecords().size() == 1) {
             Object compareVal = page.getRecords().get(0).get( table.getPrimaryKeyIndex());

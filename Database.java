@@ -1,5 +1,6 @@
 import catalog.ACatalog;
 import parsers.DDLParser;
+import parsers.DMLParser;
 import parsers.ResultSet;
 import storagemanager.AStorageManager;
 
@@ -34,6 +35,7 @@ public class Database {
             }
             String[] inputStrings = input.split(";");
             for(String inputString : inputStrings) {
+                // Ugly but will be useful when we implement executeQuery
                 if (inputString.toLowerCase().startsWith("create table")
                         || inputString.toLowerCase().startsWith("drop table")
                         || inputString.toLowerCase().startsWith("insert")
@@ -55,7 +57,13 @@ public class Database {
     }
 
     public static boolean executeStatement(String stmt){
-        return DDLParser.parseDDLStatement(stmt);
+        if(stmt.toLowerCase().startsWith("insert")
+                || stmt.toLowerCase().startsWith("update")
+                || stmt.toLowerCase().startsWith("delete")){
+            return DMLParser.parseDMLStatement(stmt);
+        }else{
+            return DDLParser.parseDDLStatement(stmt);
+        }
     }
 
     public static ResultSet executeQuery(String query){

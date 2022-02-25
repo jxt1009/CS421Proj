@@ -115,6 +115,11 @@ public class DDLParser {
             return false;
         }
         String tableName = ddlDetails[2].split("\\(")[0]; // Grab the table name
+        //checking if the table name is null - feel free to remove if this is redundant
+        if(tableName==null){
+            System.err.println("The table name is null.");
+        }
+
         //checking if table name starts with alpha char
         char c = tableName.charAt(0);
         if (!(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')){
@@ -124,25 +129,18 @@ public class DDLParser {
         if(!(tableName.matches("^[a-zA-Z]*$"))){
             System.err.println("The table name is not following the correct format.");
         }
-        //checking if the table name is null - feel free to remove if this is redundant
-        if(tableName==null){
-            System.err.println("The table name is null.");
-        }
-
-
-
 
         // New table attributes
         Attribute primaryKey = null;
         ForeignKey foreignKey = null;
         ArrayList<Attribute> tableAttributes = new ArrayList<>();
+        ArrayList<Attribute> nonNullAttributes = new ArrayList<>();
 
         // Grab details within parenthesis, ex: (attr1 Integer, attr2 double);
         parendParams = parendParams.substring(0, parendParams.length() - 2);
 
-        // Split param string on comma and iterate
+        // Split param string on comma and iterate through each attribute line
         for (String params : parendParams.split(",")) {
-            // Todo implement notnull constraint for attributes
             params = params.strip(); // Clear whitespace chars
             if (params.startsWith("primarykey")) { // If line is for primary key
                 if (primaryKey != null) { // If a primary key already exists, throw error
@@ -160,7 +158,7 @@ public class DDLParser {
                 }
                 // If we got here and no primary key is found, throw error
                 if (primaryKey == null) {
-                    System.err.println("Primary key not correctly defined in table creation");
+                    System.err.println("Primary key not correctly defined in table creation: ");
                     return false;
                 }
             } else if (params.startsWith("foreignkey")) {
@@ -183,6 +181,9 @@ public class DDLParser {
                         if (columnParams[2].equalsIgnoreCase("primarykey")) {
                             primaryKey = newAttr;
                         }
+                        if (columnParams[2].equalsIgnoreCase("nonnull")) {
+                            nonNullAttributes.add(newAttr);
+                        }
                     }
                 } else {
                     System.err.println("Not all parameters specified for " + params);
@@ -193,7 +194,7 @@ public class DDLParser {
             System.err.println("Primary key attribute not specified in table declaration");
             return false;
         }
-        ITable newTable = catalog.addTable(tableName, tableAttributes, primaryKey);
+        Table newTable = (Table) catalog.addTable(tableName, tableAttributes, primaryKey);
         if (newTable == null) {
             System.err.println("Table already exists");
             return false;
@@ -202,6 +203,9 @@ public class DDLParser {
         }
         if (foreignKey != null) {
             catalog.getTable(tableName).addForeignKey(foreignKey);
+        }
+        if(nonNullAttributes.size() > 0){
+            newTable.setNonNullAttribute(nonNullAttributes);
         }
         return true;
     }
