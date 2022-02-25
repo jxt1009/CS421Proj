@@ -86,17 +86,17 @@ public class DDLParser {
             boolean success = false;
             if(stmt.contains("default")) {
                 Object value = stmt.split("default")[1].strip();
-                success = sm.addAttributeValue(table, value);   //adds null in each tuple
+                success = sm.addAttributeValue(table, value);   //adds value in each tuple
             }else{
                 success = sm.addAttributeValue(table, null);   //adds null in each tuple
             }
             return success;
-            // todo - if given a default val, set the attribute to the default value
         }
         else if(instruction.equals("drop")){
             //eg. alter table foo drop name;
             table.dropAttribute(attributeName);
-            // TODO - maybe have to re set the record size
+            // this will go through the buffer manager which will reset the record size after
+            //deleting a record.
         }
         return true;
     }
@@ -115,7 +115,6 @@ public class DDLParser {
             return false;
         }
         String tableName = ddlDetails[2].split("\\(")[0]; // Grab the table name
-        //TODO check table name starts with alpha char and is only alphanumeric - DONE
         //checking if table name starts with alpha char
         char c = tableName.charAt(0);
         if (!(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')){
