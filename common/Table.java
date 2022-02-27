@@ -103,6 +103,7 @@ public class Table implements ITable {
 
     @Override
     public boolean addForeignKey(ForeignKey fk) {
+        // TODO VERIFY THAT FOREIGN KEY TABLE EXISTS AND COLUMN EXISTS
         // Check that the foreign key object is not already set, if so return false
         if (foreignKey != null) {
             return false;

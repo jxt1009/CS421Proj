@@ -84,7 +84,7 @@ public class Page {
         return records;
     }
 
-    public boolean addRecord(ITable table, ArrayList<Object> record,int index){
+    public boolean addRecord(ITable table, ArrayList<Object> record, int index){
         int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
         for(ArrayList<Object> recordList : records){
             if(recordList.get(primaryKeyIndex).equals(record.get(primaryKeyIndex))){

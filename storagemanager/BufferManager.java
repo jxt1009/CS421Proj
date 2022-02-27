@@ -195,8 +195,7 @@ public class BufferManager {
             return true;
 
         }
-        for (int i = 0; i < tablePages.size(); i++) {
-            Page page = tablePages.get(i);
+        for (Page page : tablePages) {
             int canAdd = canAddRecord(table, page, record);
             if (canAdd != -1) {
                 if (!page.hasSpace()) {
@@ -213,9 +212,10 @@ public class BufferManager {
 
     private int canAddRecord(Table table, Page page, ArrayList<Object> record) {
         Object recordVal = record.get( table.getPrimaryKeyIndex());
+        Attribute primaryKeyAttribute = table.getPrimaryKey();
         if (page.getRecords().size() == 1) {
             Object compareVal = page.getRecords().get(0).get( table.getPrimaryKeyIndex());
-            if (compareObjects(recordVal, compareVal)) {
+            if (compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
                 return 0;
             } else {
                 return 1;
@@ -224,23 +224,24 @@ public class BufferManager {
         for (int i = 1; i < page.getRecords().size(); i++) {
             Object previousVal = page.getRecords().get(i - 1).get( table.getPrimaryKeyIndex());
             Object compareVal = page.getRecords().get(i).get( table.getPrimaryKeyIndex());
-            if (compareObjects(previousVal, recordVal) && compareObjects(recordVal, compareVal)) {
+            if (compareObjects(previousVal, recordVal, primaryKeyAttribute)
+                    && compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
                 return i;
             }
-            if (i == 1 && compareObjects(recordVal, previousVal)) {
+            if (i == 1 && compareObjects(recordVal, previousVal, primaryKeyAttribute)) {
                 return 0;
             }
         }
         return -1;
     }
 
-    private boolean compareObjects(Object o1, Object o2) {
-        if (o1 instanceof Integer) {
-            if ((int) o1 < (int) o2) {
+    private boolean compareObjects(Object o1, Object o2,Attribute attribute) {
+        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
+            if (Integer.parseInt((String) o1) < Integer.parseInt((String) o2)) {
                 return true;
             }
-        } else if (o1 instanceof Double) {
-            if ((double) o1 < (double) o2) {
+        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
+            if (Double.parseDouble((String) o1) < Double.parseDouble((String) o2)) {
                 return true;
             }
         } else if (o1 instanceof String || o1 instanceof Character) {
@@ -278,7 +279,7 @@ public class BufferManager {
         Table table = (Table) itable;
         ArrayList<ArrayList<Object>> firstHalfRecords = new ArrayList<>(page.getRecords().subList(0, cutIndex));
         ArrayList<ArrayList<Object>> secondHalfRecords = new ArrayList<>(page.getRecords().subList(cutIndex, page.getRecords().size()));
-        removePageFromBuffer(table, page);
+        removePageFromBuffer(page);
         pageIDIndex += 1;
         Page firstPage = new Page(table, pageIDIndex, firstHalfRecords);
         addPageToBuffer(firstPage);
@@ -289,7 +290,7 @@ public class BufferManager {
         return firstPage;
     }
 
-    private void removePageFromBuffer(Table table, Page page) {
+    private void removePageFromBuffer(Page page) {
         buffer.remove(page);
         new File(pageFolder + "/" + page.getPageId()).delete();
     }

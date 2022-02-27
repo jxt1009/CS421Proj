@@ -33,6 +33,12 @@ public class DMLParser {
      * @return true if successfully parsed/executed; false otherwise
      */
     public static boolean parseDMLStatement(String stmt){
+        if(stmt.endsWith(";")){
+            stmt = stmt.replace(";","");
+        }else{
+            System.err.println("Statement does not end with a semicolon");
+            return false;
+        }
         if(stmt.toLowerCase().startsWith("insert into")){
             //inserting tuple into table
             String tableName = stmt.split("\\(")[0].split(" ")[2];
@@ -43,7 +49,11 @@ public class DMLParser {
         }
 
         else if(stmt.toLowerCase().startsWith("delete from")){
-            //deleting from the table <name> based on a where clause
+            String tableName = stmt.split("delete from")[1].split("where")[0].strip();
+            Table table = (Table) catalog.getTable(tableName);
+
+            String where = stmt.strip().split("where")[1].strip();
+            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(where);
 
         }
         else if(stmt.toLowerCase().startsWith("update")){
@@ -64,7 +74,7 @@ public class DMLParser {
 
     private static ArrayList<ArrayList<Object>> parseWhereClause(String stmt) {
         String[] params = stmt.strip().split(" ");
-        System.out.println(Arrays.toString(params));
+        //System.out.println(Arrays.toString(params));
         // TODO Implement where
         return null;
     }
