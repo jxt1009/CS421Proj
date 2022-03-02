@@ -1,12 +1,12 @@
 package parsers;
 
 import catalog.ACatalog;
+import common.Attribute;
 import common.Table;
 import storagemanager.AStorageManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
 
 /*
   Class for DML parser
@@ -77,6 +77,15 @@ public class DMLParser {
         //System.out.println(Arrays.toString(params));
         // TODO Implement where
         return null;
+    }
+
+    private static ArrayList<Object> baseNodeResult(String stmt){
+        ArrayList<Object> baseNodeResult = new ArrayList<>();
+        String tableName = stmt.split("\\(")[0].split(" ")[2];
+        String operator1 = stmt.split("where")[1].strip(); //the first attribute in comparison
+        Table table = (Table)catalog.getTable(tableName);
+        ArrayList<Attribute> attributes = table.getAttributes();
+        return baseNodeResult;
     }
 
     /**
