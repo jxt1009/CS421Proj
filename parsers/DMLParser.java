@@ -1,12 +1,13 @@
 package parsers;
 
 import catalog.ACatalog;
-import common.Attribute;
 import common.Table;
+import conditionals.*;
 import storagemanager.AStorageManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /*
   Class for DML parser
@@ -53,17 +54,31 @@ public class DMLParser {
             Table table = (Table) catalog.getTable(tableName);
 
             String where = stmt.strip().split("where")[1].strip();
-            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(where);
+            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(table,where);
+
+            for(ArrayList<Object> deleteRow : parseWhere){
+                sm.deleteRecord(table,deleteRow.get(table.getPrimaryKeyIndex()));
+            }
 
         }
         else if(stmt.toLowerCase().startsWith("update")){
             String tableName = stmt.split("update")[1].split("set")[0].strip();
+
+            String setParams = stmt.split("set")[1].split("where")[0].strip();
+
+            String columnName = setParams.split("=")[0];
+            String newValue = setParams.split("=")[1];
+
             Table table = (Table) catalog.getTable(tableName);
 
             String where = stmt.strip().split("where")[1].strip();
-            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(where);
-            // where will likely return a list of tuples to work with? process after return
-            //System.out.println(tableName);
+            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(table,where);
+
+            for(ArrayList<Object> updateRow : parseWhere){
+                ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
+                newRow.set(table.getColumnIndex(columnName),newValue);
+                sm.updateRecord(table,updateRow,newRow);
+            }
             return true;
         }
 
@@ -72,20 +87,37 @@ public class DMLParser {
     }
 
 
-    private static ArrayList<ArrayList<Object>> parseWhereClause(String stmt) {
-        String[] params = stmt.strip().split(" ");
-        System.out.println(Arrays.toString(params));
-        // TODO Implement where
-        return null;
+    private static ArrayList<ArrayList<Object>> parseWhereClause(Table table, String stmt) {
+        List<String> params = Arrays.asList(stmt.strip().split(" "));
+        Node tree = parseNode(table,params);
+        return tree.evaluate();
     }
 
-    private static ArrayList<Object> baseNodeResult(String stmt){
-        ArrayList<Object> baseNodeResult = new ArrayList<>();
-        String tableName = stmt.split("\\(")[0].split(" ")[2];
-        String operator1 = stmt.split("where")[1].strip(); //the first attribute in comparison
-        Table table = (Table)catalog.getTable(tableName);
-        ArrayList<Attribute> attributes = table.getAttributes();
-        return baseNodeResult;
+    private static Node parseNode(Table table, List<String> params){
+        // Left node is always a column
+        Node left = new ColumnNode(params.get(0),table);
+        // Right node could be column or value, don't set yet
+        Node right;
+        if(params.get(2).contains("\"") && table.containsColumn(params.get(2).replace("\"",""))){
+            // If the string is name of column, create column node
+            right = new ColumnNode(params.get(2),table);
+        }else {
+            // If not a column, assume it is a value
+            right = new ValueNode(params.get(2));
+        }
+        // If there are more params, check if it's an and/or statement
+        if(params.size() > 3) {
+            if (params.get(3).equals("and") || params.get(3).equals("or")) {
+                // Create new conditionalnode and recursively generate more nodes
+               return new ConditionalNode(
+                       new OperatorNode(left,right,params.get(1)),
+                       parseNode(table, params.subList(4, params.size())),
+                       params.get(3),
+                       table
+               );
+            }
+        }
+        return new OperatorNode(left,right,params.get(1));
     }
 
     /**

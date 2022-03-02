@@ -215,7 +215,7 @@ public class BufferManager {
         Attribute primaryKeyAttribute = table.getPrimaryKey();
         if (page.getRecords().size() == 1) {
             Object compareVal = page.getRecords().get(0).get( table.getPrimaryKeyIndex());
-            if (compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
+            if (RecordHelper.compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
                 return 0;
             } else {
                 return 1;
@@ -224,33 +224,18 @@ public class BufferManager {
         for (int i = 1; i < page.getRecords().size(); i++) {
             Object previousVal = page.getRecords().get(i - 1).get( table.getPrimaryKeyIndex());
             Object compareVal = page.getRecords().get(i).get( table.getPrimaryKeyIndex());
-            if (compareObjects(previousVal, recordVal, primaryKeyAttribute)
-                    && compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
+            if (RecordHelper.compareObjects(previousVal, recordVal, primaryKeyAttribute)
+                    &&  RecordHelper.compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
                 return i;
             }
-            if (i == 1 && compareObjects(recordVal, previousVal, primaryKeyAttribute)) {
+            if (i == 1 && RecordHelper.compareObjects(recordVal, previousVal, primaryKeyAttribute)) {
                 return 0;
             }
         }
         return -1;
     }
 
-    private boolean compareObjects(Object o1, Object o2,Attribute attribute) {
-        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
-            if (Integer.parseInt((String) o1) < Integer.parseInt((String) o2)) {
-                return true;
-            }
-        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
-            if (Double.parseDouble((String) o1) < Double.parseDouble((String) o2)) {
-                return true;
-            }
-        } else if (o1 instanceof String || o1 instanceof Character) {
-            if (((String) o1).compareTo((String) o2) < 0) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     public boolean updateRecord(ITable table, ArrayList<Object> oldRecord, ArrayList<Object> newRecord) {
         Object primaryKey = oldRecord.get(((Table) table).getPrimaryKeyIndex());

@@ -100,6 +100,20 @@ public class Table implements ITable {
         return false;
     }
 
+    public boolean containsColumn(String columnName){
+        return getColumnIndex(columnName) != -1;
+    }
+
+
+    public int getColumnIndex(String columnName){
+        for(int i = 0; i <attributes.size();i++){
+            if(attributes.get(i).getAttributeName().equalsIgnoreCase(columnName.strip())){
+                return i;
+            }
+        }
+        return -1;
+    }
+
 
     @Override
     public boolean addForeignKey(ForeignKey fk) {
