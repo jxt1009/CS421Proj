@@ -188,7 +188,7 @@ public class Phase2Tester {
     }
 
     private static boolean testConstraints(){
-        String createTable = "create table table1( attr1 integer, attr2 double notnull, attr3 char(5), primarykey(attr1) );";
+        String createTable = "create table table1( attr1 integer, attr2 double notnull, attr3 char(5), primarykey( attr1 ) );";
         System.out.println("Create table stmt:\n" + createTable);
 
         if(!DDLParser.parseDDLStatement(createTable)){

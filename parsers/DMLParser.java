@@ -74,7 +74,7 @@ public class DMLParser {
 
     private static ArrayList<ArrayList<Object>> parseWhereClause(String stmt) {
         String[] params = stmt.strip().split(" ");
-        //System.out.println(Arrays.toString(params));
+        System.out.println(Arrays.toString(params));
         // TODO Implement where
         return null;
     }
