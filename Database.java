@@ -35,6 +35,7 @@ public class Database {
             }
             String[] inputStrings = input.split(";");
             for(String inputString : inputStrings) {
+                inputString += ";";
                 // Ugly but will be useful when we implement executeQuery
                 if (inputString.toLowerCase().startsWith("create table")
                         || inputString.toLowerCase().startsWith("drop table")
