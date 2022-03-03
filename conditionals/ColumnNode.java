@@ -34,4 +34,8 @@ public class ColumnNode extends Node{
     public ArrayList<ArrayList<Object>> evaluate() {
         return StorageManager.getStorageManager().getRecords(table);
     }
+
+    public String toString(){
+        return "Column " + columnAttribute.getAttributeName();
+    }
 }

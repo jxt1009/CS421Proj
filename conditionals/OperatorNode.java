@@ -12,7 +12,7 @@ public class OperatorNode extends Node {
 
     private final String operator;
 
-    public OperatorNode(Node left, Node right,String operator) {
+    public OperatorNode(Node left, Node right, String operator) {
         this.operator = operator;
         this.left = left;
         this.right = right;
@@ -28,41 +28,68 @@ public class OperatorNode extends Node {
 
     public ArrayList<ArrayList<Object>> evaluate() {
         ArrayList<ArrayList<Object>> results = new ArrayList<>();
-        for (ArrayList<Object> leftRecord : left.evaluate()) {
-            Object leftValue;
-            if (left instanceof ColumnNode) {
+        ArrayList<ArrayList<Object>> leftResults = left.evaluate();
+        if (right instanceof ValueNode) {
+            for (ArrayList<Object> leftRecord : leftResults) {
                 int columnIndex = ((ColumnNode) left).getColumnIndex();
-                leftValue = leftRecord.get(columnIndex);
-            } else {
-                leftValue = null;
-            }
-            Object rightValue;
-            if (right instanceof ValueNode) {
-                rightValue = ((ValueNode) right).getValue();
-            } else {
-                rightValue = null;
-            }
-            Attribute columnAttribute = ((ColumnNode) left).getColumnAttribute();
-            switch (operator) {
-                case ">":
-                    if (RecordHelper.greaterThan(leftValue, rightValue, columnAttribute)) {
-                        results.add(leftRecord);
-                    }
-                    break;
-                case "<":
-                    if (RecordHelper.lessThan(leftValue, rightValue, columnAttribute)) {
-                        results.add(leftRecord);
-                    }
-                    break;
-                case "=":
-                    if (RecordHelper.equals(leftValue, rightValue, columnAttribute)) {
-                        results.add(leftRecord);
-                    }
-                    break;
-            }
 
+                Object leftValue = leftRecord.get(columnIndex);
+                Object rightValue = ((ValueNode) right).getValue();
+                Attribute columnAttribute = ((ColumnNode) left).getColumnAttribute();
 
+                switch (operator) {
+                    case ">":
+                        if (RecordHelper.greaterThan(leftValue, rightValue, columnAttribute)) {
+                            results.add(leftRecord);
+                        }
+                        break;
+                    case "<":
+                        if (RecordHelper.lessThan(leftValue, rightValue, columnAttribute)) {
+                            results.add(leftRecord);
+                        }
+                        break;
+                    case "=":
+                        if (RecordHelper.equals(leftValue, rightValue, columnAttribute)) {
+                            results.add(leftRecord);
+                        }
+                        break;
+                }
+            }
+        } else {
+            ArrayList<ArrayList<Object>> rightResults = right.evaluate();
+            for (ArrayList<Object> leftRecord : leftResults) {
+                for (ArrayList<Object> rightRecord : rightResults) {
+                    int leftColumnIndex = ((ColumnNode) left).getColumnIndex();
+                    Object leftValue = leftRecord.get(leftColumnIndex);
+
+                    int rightColumnIndex = ((ColumnNode) right).getColumnIndex();
+                    Object rightValue = rightRecord.get(rightColumnIndex);
+
+                    Attribute columnAttribute = ((ColumnNode) left).getColumnAttribute();
+
+                    switch (operator) {
+                        case ">":
+                            if (RecordHelper.greaterThan(leftValue, rightValue, columnAttribute)) {
+                                results.add(leftRecord);
+                            }
+                            break;
+                        case "<":
+                            if (RecordHelper.lessThan(leftValue, rightValue, columnAttribute)) {
+                                results.add(leftRecord);
+                            }
+                            break;
+                        case "=":
+                            if (RecordHelper.equals(leftValue, rightValue, columnAttribute)) {
+                                results.add(leftRecord);
+                            }
+                            break;
+                    }
+                }
+            }
         }
         return results;
+    }
+    public String toString(){
+        return "(" +left.toString() + ") " + operator + " (" + right.toString() + ")";
     }
 }

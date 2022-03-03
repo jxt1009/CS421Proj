@@ -18,4 +18,8 @@ public class ValueNode extends Node{
         //not used for value nodes, use getValue()
         return null;
     }
+
+    public String toString(){
+        return "Value " + value;
+    }
 }
