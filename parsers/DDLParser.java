@@ -85,7 +85,7 @@ public class DDLParser {
             table.addAttribute(attributeName, attributeType);
             boolean success = false;
             if(stmt.contains("default")) {
-                Object value = stmt.split("default")[1].strip();
+                Object value = stmt.split("default")[1].strip().replace(";","");
                 success = sm.addAttributeValue(table, value);   //adds value in each tuple
             }else{
                 success = sm.addAttributeValue(table, null);   //adds null in each tuple
