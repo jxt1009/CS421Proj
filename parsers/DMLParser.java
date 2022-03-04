@@ -74,6 +74,8 @@ public class DMLParser {
             int insertedRecords = 0;
             System.out.println(stmt);
             String[] records = stmt.split("values")[1].split("\\)");
+            //check if records[i] = getcolumnthing[i] (from table class) and send an error message
+            // if they are of different types
             for(String recordString: records) {
                 String[] insertValues = recordString.split("\\(")[1].strip().split(",");
 
@@ -124,6 +126,7 @@ public class DMLParser {
                 ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
 
                 // TODO newValue needs to be parsed if it contains "+,-,/,*"
+                //switch statements for the operators
                 newRow.set(table.getColumnIndex(columnName), newValue);
 
                 // Update record in table
