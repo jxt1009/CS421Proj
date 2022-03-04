@@ -101,11 +101,6 @@ public class DDLParser {
         return true;
     }
 
-//    private static ArrayList<ArrayList<Object>> parseWhereClause(String stmt) {
-//        String[] ddlDetails = stmt.strip().split(" ");
-//        // TODO Implement where
-//        return null;
-//    }
 
     private static boolean parseCreateClause(String stmt) {
         String[] ddlDetails = stmt.split(" ");
@@ -172,6 +167,11 @@ public class DDLParser {
 
                 // Create new foreign key object
                 foreignKey = new ForeignKey(refTable, refKey, fKey);
+                //TODO
+                //we have key and table
+                //we can add an if statement in the catalog that if the table exists,
+                //if table exists, the key is in its attributes (function in table class)
+                //if both of those are good, also check if the type of attributes is same
             } else {
                 String[] columnParams = params.split(" ");
                 if (columnParams.length >= 2) {
