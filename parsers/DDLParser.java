@@ -170,8 +170,21 @@ public class DDLParser {
                 //TODO
                 //we have key and table
                 //we can add an if statement in the catalog that if the table exists,
-                //if table exists, the key is in its attributes (function in table class)
-                //if both of those are good, also check if the type of attributes is same
+                if (catalog.getTable(refTable) != null){
+                    //if table exists, the key is in its attributes
+                    //if both of those are good, also check if the type of attributes is same
+                    for (Attribute attribute: catalog.getTable(refTable).getAttributes()){
+                        if(attribute.getAttributeName().equals(foreignKey.getAttrName())){
+                            if(attribute.getAttributeType().equals(foreignKey.getRefAttribute())){
+                                return true;
+                            }
+                        }
+                    }
+                }
+                if (foreignKey == null) {
+                    System.err.println("Foreign key not correctly defined in table creation: ");
+                    return false;
+                }
             } else {
                 String[] columnParams = params.split(" ");
                 if (columnParams.length >= 2) {
