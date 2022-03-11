@@ -125,9 +125,7 @@ public class DMLParser {
                 // Create copy of row to work on
                 ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
 
-                // TODO newValue needs to be parsed if it contains "+,-,/,*"
                 //switch statements for the operators
-                //int newValue = table.getColumnIndex(columnName);
                 if(newValue.contains("+")||newValue.contains("-")||newValue.contains("/")||newValue.contains("*")){
                     String operation = newValue.split(" ")[2];
                     float operator = Float.parseFloat(newValue.split(" ")[3]);
