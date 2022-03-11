@@ -127,6 +127,21 @@ public class DMLParser {
 
                 // TODO newValue needs to be parsed if it contains "+,-,/,*"
                 //switch statements for the operators
+                //int newValue = table.getColumnIndex(columnName);
+                if(newValue.contains("+")||newValue.contains("-")||newValue.contains("/")||newValue.contains("*")){
+                    String operation = newValue.split(" ")[2];
+                    float operator = Float.parseFloat(newValue.split(" ")[3]);
+                    switch (operation){
+                        case "+": newValue = String.valueOf(table.getColumnIndex(columnName) + operator);
+                            break;
+                        case "-": newValue = String.valueOf(table.getColumnIndex(columnName) - operator);
+                            break;
+                        case "*": newValue = String.valueOf(table.getColumnIndex(columnName) * operator);
+                            break;
+                        case "/": newValue = String.valueOf(table.getColumnIndex(columnName) / operator);
+                            break;
+                    }
+                }
                 newRow.set(table.getColumnIndex(columnName), newValue);
 
                 // Update record in table
