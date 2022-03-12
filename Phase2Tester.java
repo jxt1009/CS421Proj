@@ -214,7 +214,7 @@ public class Phase2Tester {
         }
 
         //should fail, inserting null in not null
-        insertStmt = "insert int table1 values " +
+        insertStmt = "insert into table1 values " +
                 "(34, null, null );";
 
         System.out.println("Stmt: " + insertStmt);
@@ -225,7 +225,7 @@ public class Phase2Tester {
         }
 
         //should fail, dup primarykey
-        insertStmt = "insert int table1 values " +
+        insertStmt = "insert into table1 values " +
                 "(1, 11.3, \"who\");";
 
         System.out.println("Stmt: " + insertStmt);
@@ -236,7 +236,7 @@ public class Phase2Tester {
         }
 
         //should fail, wrong data type
-        insertStmt = "insert int table1 values " +
+        insertStmt = "insert into table1 values " +
                 "( 1.5, 11.3, \"who\" );";
 
         System.out.println("Stmt: " + insertStmt);
@@ -247,7 +247,7 @@ public class Phase2Tester {
         }
 
         //should fail, string too long
-        insertStmt = "insert int table1 values " +
+        insertStmt = "insert into table1 values " +
                 "(10, 11.3, \"whose\" );";
 
         System.out.println("Stmt: " + insertStmt);

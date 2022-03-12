@@ -62,22 +62,29 @@ public class DMLParser {
         if (stmt.endsWith(";")) {
             stmt = stmt.replace(";", "");
         } else {
-            System.out.println(stmt);
+            //System.out.println(stmt);
             System.err.println("Statement does not end with a semicolon");
             return false;
         }
-        if (stmt.toLowerCase().startsWith("insert into")) {
+        if (stmt.toLowerCase().startsWith("insert")) {
+            if(!stmt.toLowerCase().startsWith("insert into")){
+                System.err.println("Error with insert statement definition");
+                return false;
+            }
             // Table name should be before the parend
             String tableName = stmt.split("\\(")[0].split(" ")[2].strip();
 
             // Values are within the parends, grab string inside
             int insertedRecords = 0;
-            System.out.println(stmt);
+            //System.out.println(stmt);
             String[] records = stmt.split("values")[1].split("\\)");
             //check if records[i] = getcolumnthing[i] (from table class) and send an error message
             // if they are of different types
             for(String recordString: records) {
                 String[] insertValues = recordString.split("\\(")[1].strip().split(",");
+                for(int i = 0; i < insertValues.length;i++){
+                    insertValues[i] = insertValues[i].strip();
+                }
 
                 // Convert string list into arraylist of records to add
                 ArrayList<Object> record = new ArrayList<>(Arrays.asList(insertValues));
@@ -107,48 +114,61 @@ public class DMLParser {
             String setParams = stmt.split("set")[1].split("where")[0].strip();
 
             // Column name is before the equals token
-            String columnName = setParams.split("=")[0];
+            String columnName = setParams.split("=")[0].strip();
             // New value is after equals token
-            String newValue = setParams.split("=")[1];
+            String newValue = setParams.split("=")[1].split("where")[0].strip();
 
             // Grab table for nodes to use
             Table table = (Table) catalog.getTable(tableName);
-
+            if(table == null){
+                return false;
+            }
+            if(newValue.equals("null")){
+                return !table.isANonNullableAttribute(table.getColumnIndex(columnName));
+            }
+            if(table.getColumnIndex(columnName) == -1){
+                return false;
+            }
             // Grab everything after 'where' token
             String where = stmt.strip().split("where")[1].strip();
 
             // Parse node tree and get returned list of values to update
             ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(table, where);
+            if(parseWhere == null){
+                System.err.println("Where clause could not be parsed");
+                return false;
+            }
 
             // Iterate through rows to update and apply new value
             for (ArrayList<Object> updateRow : parseWhere) {
                 // Create copy of row to work on
                 ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
-
                 //switch statements for the operators
                 if(newValue.contains("+")||newValue.contains("-")||newValue.contains("/")||newValue.contains("*")){
-                    String operation = newValue.split(" ")[2];
-                    float operator = Float.parseFloat(newValue.split(" ")[3]);
+                    String operation = newValue.split(" ")[1];
+                    float operator = Float.parseFloat(newValue.split(" ")[2]);
+                    float originalValue = Float.parseFloat((String) newRow.get(table.getColumnIndex(columnName)));
                     switch (operation){
-                        case "+": newValue = String.valueOf(table.getColumnIndex(columnName) + operator);
+                        case "+":
+                            newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue + operator));
                             break;
-                        case "-": newValue = String.valueOf(table.getColumnIndex(columnName) - operator);
+                        case "-":
+                            newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue - operator));
                             break;
-                        case "*": newValue = String.valueOf(table.getColumnIndex(columnName) * operator);
+                        case "*":
+                            newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue * operator));
                             break;
-                        case "/": newValue = String.valueOf(table.getColumnIndex(columnName) / operator);
+                        case "/":
+                            newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue / operator));
                             break;
                     }
                 }
-                newRow.set(table.getColumnIndex(columnName), newValue);
 
                 // Update record in table
                 sm.updateRecord(table, updateRow, newRow);
             }
             return true;
         }
-
-
         return true;
     }
 
@@ -188,6 +208,9 @@ public class DMLParser {
         }
         // Parse node structure
         Node tree = parseNode(table,tokenStack);
+        if(tree == null){
+            return null;
+        }
         // Return final arraylist of results
         return tree.evaluate();
     }
@@ -212,7 +235,11 @@ public class DMLParser {
         String leftString = params.pop();
 
         // Left node is always a column
-        Node left = new ColumnNode(leftString, table);
+        ColumnNode left = new ColumnNode(leftString, table);
+        if(left.getColumnIndex() == -1){
+            System.err.println("Column name does not exist in table");
+            return null;
+        }
         // Right node could be column or value, don't set yet
         Node right;
         if (table.containsColumn(rightString.strip())) {

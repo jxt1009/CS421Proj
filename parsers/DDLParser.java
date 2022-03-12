@@ -113,16 +113,13 @@ public class DDLParser {
         //checking if the table name is null - feel free to remove if this is redundant
         if(tableName==null){
             System.err.println("The table name is null.");
+            return false;
         }
 
         //checking if table name starts with alpha char
         char c = tableName.charAt(0);
         if (!(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')){
             System.err.println("The table name does not start with an alphabetic character.");
-        }
-        //checking if the table name is only alphanumeric
-        if(!(tableName.matches("^[a-zA-Z]*$"))){
-            System.err.println("The table name is not following the correct format.");
         }
 
         // New table attributes
@@ -136,7 +133,7 @@ public class DDLParser {
 
         // Split param string on comma and iterate through each attribute line
         for (String params : parendParams.split(",")) {
-            params = params.strip(); // Clear whitespace chars
+            params = params.strip(); // Clear whitespace chars;
             if (params.startsWith("primarykey")) { // If line is for primary key
                 if (primaryKey != null) { // If a primary key already exists, throw error
                     System.err.println("More than one primary key specified for table");
@@ -167,22 +164,22 @@ public class DDLParser {
 
                 // Create new foreign key object
                 foreignKey = new ForeignKey(refTable, refKey, fKey);
-                //TODO
                 //we have key and table
                 //we can add an if statement in the catalog that if the table exists,
+                boolean canAddForeignKey = false;
                 if (catalog.getTable(refTable) != null){
                     //if table exists, the key is in its attributes
                     //if both of those are good, also check if the type of attributes is same
                     for (Attribute attribute: catalog.getTable(refTable).getAttributes()){
                         if(attribute.getAttributeName().equals(foreignKey.getAttrName())){
                             if(attribute.getAttributeType().equals(foreignKey.getRefAttribute())){
-                                return true;
+                                canAddForeignKey = true;
                             }
                         }
                     }
                 }
-                if (foreignKey == null) {
-                    System.err.println("Foreign key not correctly defined in table creation: ");
+                if(!canAddForeignKey){
+                    System.err.println("Could not find foreignkey attribute in referenced table, table not created");
                     return false;
                 }
             } else {
@@ -191,15 +188,16 @@ public class DDLParser {
                     Attribute newAttr = new Attribute(columnParams[0].strip(), columnParams[1].strip());
                     tableAttributes.add(newAttr);
                     if (columnParams.length > 2) {
-                        if (columnParams[2].equalsIgnoreCase("primarykey")) {
+                        if (columnParams[2].strip().equalsIgnoreCase("primarykey")) {
                             primaryKey = newAttr;
                         }
-                        if (columnParams[2].equalsIgnoreCase("nonnull")) {
+                        if (columnParams[2].strip().equalsIgnoreCase("notnull")) {
                             nonNullAttributes.add(newAttr);
                         }
                     }
                 } else {
                     System.err.println("Not all parameters specified for " + params);
+                    return false;
                 }
             }
         }

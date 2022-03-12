@@ -1,6 +1,5 @@
 package common;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Table implements ITable {
@@ -93,7 +92,10 @@ public class Table implements ITable {
         for (Attribute attr : attributes) {
             if (attr.getAttributeName().equals(name)) {
                 attributes.remove(attr);
-                nonNullAttributes.remove(attr);
+                if(nonNullAttributes.contains(attr)) {
+                    System.out.println("foreiign key removed");
+                    nonNullAttributes.remove(attr);
+                }
                 return true;
             }
         }
@@ -163,5 +165,9 @@ public class Table implements ITable {
             }
         }
         return true;
+    }
+
+    public boolean isANonNullableAttribute(int i) {
+        return nonNullAttributes.contains(attributes.get(i));
     }
 }

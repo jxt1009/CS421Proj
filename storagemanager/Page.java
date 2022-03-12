@@ -6,7 +6,6 @@ import common.ITable;
 import common.Table;
 
 import java.io.*;
-import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 
 public class Page {
@@ -86,6 +85,18 @@ public class Page {
 
     public boolean addRecord(ITable table, ArrayList<Object> record, int index){
         int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
+        for(int i = 0; i < record.size(); i++){
+            Attribute attr = table.getAttributes().get(i);
+            if(!RecordHelper.matchesType(record.get(i),attr) && !((Table)table).isANonNullableAttribute(i)){
+                System.err.println("Type does not match " + record.get(i) + " " + attr.getAttributeType());
+                return false;
+            }
+        }
+
+        if(!((Table)table).checkNonNullAttributes(record)){
+            System.err.println("Record contains null values in a non-null column.");
+            return false;
+        }
         for(ArrayList<Object> recordList : records){
             if(recordList.get(primaryKeyIndex).equals(record.get(primaryKeyIndex))){
                 return false;
@@ -137,6 +148,18 @@ public class Page {
     }
 
     public boolean updateRecord(ITable table, Object primaryKey, ArrayList<Object> newRecord) {
+        for(int i = 0; i < newRecord.size(); i++){
+            Attribute attr = table.getAttributes().get(i);
+            if(!RecordHelper.matchesType(newRecord.get(i),attr) && !((Table)table).isANonNullableAttribute(i)){
+                System.err.println("Type does not match " + newRecord.get(i) + " " + attr.getAttributeType());
+                return false;
+            }
+        }
+
+        if(!((Table)table).checkNonNullAttributes(newRecord)){
+            System.err.println("Record contains null values in a non-null column.");
+            return false;
+        }
         int recordIndex = deleteRecord(table,primaryKey);
         if(recordIndex != -1) {
             return addRecord(table, newRecord,recordIndex);

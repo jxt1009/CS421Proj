@@ -92,10 +92,10 @@ public class BufferManager {
                         outputStream.writeDouble((Double) record);
                     } else if (type.equalsIgnoreCase("Boolean")) {
                         outputStream.writeBoolean((Boolean) record);
-                    } else if (type.startsWith("Varchar")) {
+                    } else if (type.toLowerCase().startsWith("varchar")) {
                         String outputString = (String) record;
                         FileManager.writeChars(outputString, outputStream);
-                    } else if (type.startsWith("Char")) {
+                    } else if (type.toLowerCase().startsWith("char")) {
                         int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
                         String outputString = (String) record;
                         outputStream.writeInt(charLen);
@@ -185,29 +185,40 @@ public class BufferManager {
             System.err.println("Record cannot be null.");
             return false;
         }
+        if (tablePages.size() == 0) {
+            Page p = addNewPage(table);
+            return p.addRecord(table, record, 0);
+
+        }
+        for(int i = 0; i < record.size(); i++){
+            Attribute attr = table.getAttributes().get(i);
+            if(!RecordHelper.matchesType(record.get(i),attr) && !table.isANonNullableAttribute(i)){
+                System.err.println("Type does not match " + record.get(i) + " " + attr.getAttributeType());
+                return false;
+            }
+        }
+
         if(!table.checkNonNullAttributes(record)){
             System.err.println("Record contains null values in a non-null column.");
             return false;
         }
-        if (tablePages.size() == 0) {
-            Page p = addNewPage(table);
-            p.addRecord(table, record, 0);
-            return true;
-
-        }
+        int canAdd = -2;
         for (Page page : tablePages) {
-            int canAdd = canAddRecord(table, page, record);
-            if (canAdd != -1) {
+            canAdd = canAddRecord(table, page, record);
+            if (canAdd > -1) {
                 if (!page.hasSpace()) {
                     page = cutRecords(table, page, canAdd);
                 }
                 return page.addRecord(table, record, canAdd);
             }
         }
-        Page p = tablePages.get(tablePages.size()-1);
-        p.addRecord(table, record, p.getRecords().size());
-        updateBuffer();
-        return true;
+        if(canAdd == -1) {
+            Page p = tablePages.get(tablePages.size() - 1);
+            updateBuffer();
+            return p.addRecord(table, record, p.getRecords().size());
+        }else{
+            return false;
+        }
     }
 
     private int canAddRecord(Table table, Page page, ArrayList<Object> record) {
@@ -215,6 +226,9 @@ public class BufferManager {
         Attribute primaryKeyAttribute = table.getPrimaryKey();
         if (page.getRecords().size() == 1) {
             Object compareVal = page.getRecords().get(0).get( table.getPrimaryKeyIndex());
+            if(RecordHelper.equals(compareVal,recordVal,primaryKeyAttribute) ){
+                return -2;
+            }
             if (RecordHelper.compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
                 return 0;
             } else {
@@ -224,6 +238,10 @@ public class BufferManager {
         for (int i = 1; i < page.getRecords().size(); i++) {
             Object previousVal = page.getRecords().get(i - 1).get( table.getPrimaryKeyIndex());
             Object compareVal = page.getRecords().get(i).get( table.getPrimaryKeyIndex());
+            if(RecordHelper.equals(compareVal,recordVal,primaryKeyAttribute)
+                    || RecordHelper.equals(previousVal,recordVal,primaryKeyAttribute) ){
+                return -2;
+            }
             if (RecordHelper.compareObjects(previousVal, recordVal, primaryKeyAttribute)
                     &&  RecordHelper.compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
                 return i;
@@ -239,6 +257,7 @@ public class BufferManager {
 
     public boolean updateRecord(ITable table, ArrayList<Object> oldRecord, ArrayList<Object> newRecord) {
         Object primaryKey = oldRecord.get(((Table) table).getPrimaryKeyIndex());
+
         Page updatePage = searchForPage(table, primaryKey);
         if (updatePage != null) {
             updateBuffer();

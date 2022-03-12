@@ -2,6 +2,8 @@ package storagemanager;
 
 import common.Attribute;
 
+import java.util.Locale;
+
 public class RecordHelper {
     public static boolean compareObjects(Object o1, Object o2, Attribute attribute) {
         if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
@@ -77,4 +79,33 @@ public class RecordHelper {
             return !((String) o1).strip().equals(((String) o2).strip());
         }
     }
+
+    public static boolean matchesType(Object o, Attribute attribute){
+        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
+            try {
+                Integer.parseInt((String)o);
+                return true;
+            } catch(NumberFormatException e){
+                return false;
+            }
+        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
+            try {
+                Double.parseDouble((String)o);
+                return true;
+            } catch(NumberFormatException e){
+                return false;
+            }
+        } else if (attribute.getAttributeType().toLowerCase().startsWith("varchar")
+                || attribute.getAttributeType().toLowerCase().startsWith("char")) {
+            String type = attribute.getAttributeType();
+            int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
+            return ((String)o).length() <= charLen;
+        }else if(attribute.getAttributeType().equalsIgnoreCase("boolean")){
+            if(((String) o).equalsIgnoreCase("true") || ((String) o).equalsIgnoreCase("false")){
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
