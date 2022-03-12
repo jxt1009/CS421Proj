@@ -93,7 +93,6 @@ public class Table implements ITable {
             if (attr.getAttributeName().equals(name)) {
                 attributes.remove(attr);
                 if(nonNullAttributes.contains(attr)) {
-                    System.out.println("foreiign key removed");
                     nonNullAttributes.remove(attr);
                 }
                 return true;

@@ -54,7 +54,7 @@ public class Catalog extends ACatalog {
 
     @Override
     public boolean containsTable(String tableName) {
-        return tables.containsKey(tableName);
+        return tables.containsKey(tableName.toLowerCase());
     }
 
     @Override
@@ -71,8 +71,8 @@ public class Catalog extends ACatalog {
 
     @Override
     public ITable getTable(String tableName) {
-        if(containsTable(tableName)){
-            return tables.get(tableName);
+        if(containsTable(tableName.toLowerCase())){
+            return tables.get(tableName.toLowerCase());
         }
         return null;
     }

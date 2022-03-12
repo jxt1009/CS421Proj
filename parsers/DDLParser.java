@@ -167,16 +167,16 @@ public class DDLParser {
                 //we have key and table
                 //we can add an if statement in the catalog that if the table exists,
                 boolean canAddForeignKey = false;
-                if (catalog.getTable(refTable) != null){
+                Table foreignTable = (Table) catalog.getTable(refTable.toLowerCase());
+                if (foreignTable != null){
                     //if table exists, the key is in its attributes
                     //if both of those are good, also check if the type of attributes is same
-                    for (Attribute attribute: catalog.getTable(refTable).getAttributes()){
-                        if(attribute.getAttributeName().equals(foreignKey.getAttrName())){
-                            if(attribute.getAttributeType().equals(foreignKey.getRefAttribute())){
+                    for (Attribute attribute: catalog.getTable(refTable.toLowerCase()).getAttributes()){
+                        System.out.println(attribute.getAttributeType() + " " + foreignTable.getAttrByName(foreignKey.getRefAttribute()).getAttributeType());
+                            if(attribute.getAttributeType().equalsIgnoreCase(foreignTable.getAttrByName(foreignKey.getRefAttribute()).getAttributeType())){
                                 canAddForeignKey = true;
                             }
                         }
-                    }
                 }
                 if(!canAddForeignKey){
                     System.err.println("Could not find foreignkey attribute in referenced table, table not created");

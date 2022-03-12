@@ -4,6 +4,7 @@ import catalog.ACatalog;
 import common.Table;
 import conditionals.*;
 import storagemanager.AStorageManager;
+import storagemanager.RecordHelper;
 
 import java.util.*;
 
@@ -68,11 +69,13 @@ public class DMLParser {
         }
         if (stmt.toLowerCase().startsWith("insert")) {
             if(!stmt.toLowerCase().startsWith("insert into")){
-                System.err.println("Error with insert statement definition");
+                System.err.println("Error with insert statement, use 'insert into'");
                 return false;
             }
             // Table name should be before the parend
             String tableName = stmt.split("\\(")[0].split(" ")[2].strip();
+
+            Table table = (Table) catalog.getTable(tableName);
 
             // Values are within the parends, grab string inside
             int insertedRecords = 0;
@@ -88,12 +91,12 @@ public class DMLParser {
 
                 // Convert string list into arraylist of records to add
                 ArrayList<Object> record = new ArrayList<>(Arrays.asList(insertValues));
-                Table table = (Table) catalog.getTable(tableName);
                 // Insert records
                 if(sm.insertRecord(table, record)){
                     insertedRecords += 1;
                 }
             }
+
             return insertedRecords == records.length;
         } else if (stmt.toLowerCase().startsWith("delete from")) {
             String tableName = stmt.split("delete from")[1].split("where")[0].strip();
@@ -138,34 +141,42 @@ public class DMLParser {
                 System.err.println("Where clause could not be parsed");
                 return false;
             }
-
+            boolean success = true;
             // Iterate through rows to update and apply new value
             for (ArrayList<Object> updateRow : parseWhere) {
                 // Create copy of row to work on
                 ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
                 //switch statements for the operators
-                if(newValue.contains("+")||newValue.contains("-")||newValue.contains("/")||newValue.contains("*")){
-                    String operation = newValue.split(" ")[1];
-                    float operator = Float.parseFloat(newValue.split(" ")[2]);
-                    float originalValue = Float.parseFloat((String) newRow.get(table.getColumnIndex(columnName)));
-                    switch (operation){
-                        case "+":
-                            newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue + operator));
-                            break;
-                        case "-":
-                            newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue - operator));
-                            break;
-                        case "*":
-                            newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue * operator));
-                            break;
-                        case "/":
-                            newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue / operator));
-                            break;
+                if(setParams.contains("+")||setParams.contains("-")||setParams.contains("/")||setParams.contains("*")||setParams.contains("=")){
+                    String operation = setParams.split(" ")[1];
+                    String value = setParams.split(" ")[2];
+                    Object operator;
+                    boolean isNumber = RecordHelper.isNumeric(value);
+                    if(isNumber || table.containsColumn(value)){
+                        float originalValue = 0;
+                        if(table.containsColumn(value)) {
+                            originalValue = Float.parseFloat((String) updateRow.get(table.getColumnIndex(value)));
+                            operator = Float.parseFloat(setParams.split(" ")[4]);
+                            operation = setParams.split(" ")[3];
+                        }else{
+                            operator = Float.parseFloat(value);
+                        }
+                        switch (operation) {
+                            case "+" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue + (float)operator));
+                            case "-" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue - (float)operator));
+                            case "*" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue * (float)operator));
+                            case "/" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue / (float)operator));
+                            case "=" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(operator));
+                        }
+                    }else{
+                        operator = value.substring(1,value.length()-1);
+                        newRow.set(table.getColumnIndex(columnName), operator);
                     }
                 }
 
+                success = success && sm.updateRecord(table, updateRow, newRow);
+
                 // Update record in table
-                sm.updateRecord(table, updateRow, newRow);
             }
             return true;
         }
