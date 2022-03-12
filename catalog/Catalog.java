@@ -9,6 +9,7 @@ import storagemanager.Page;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class Catalog extends ACatalog {
 
@@ -58,6 +59,7 @@ public class Catalog extends ACatalog {
 
     @Override
     public ITable addTable(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
+        tableName = tableName.toLowerCase();
         Table newTable = new Table(tableName,attributes,primaryKey);
         if(!tables.containsKey(tableName)){
             tables.put(tableName,newTable);
