@@ -49,7 +49,7 @@ public class DDLParser {
      * @return true if successfully parsed/executed; false otherwise
      */
     public static boolean parseDDLStatement(String stmt) {
-        stmt = stmt.strip();
+        stmt = stmt.toLowerCase().strip();
         if (stmt.toLowerCase().startsWith("create table")) { // Create statement
             return parseCreateClause(stmt);
         } else if (stmt.toLowerCase().startsWith("drop table")) {
@@ -69,14 +69,14 @@ public class DDLParser {
      * @return
      */
     private static boolean parseAlterClause(String stmt){
-        String tableName = stmt.split("\\(")[0].split(" ")[2];
+        String tableName = stmt.toLowerCase().split("\\(")[0].split(" ")[2];
         Table table = (Table) catalog.getTable(tableName);
         if (!catalog.containsTable(tableName)) {
             System.err.println("Table " + tableName + " does not exist in catalog");
             return false;
         }
 
-        String instruction = stmt.split("\\(")[0].split(" ")[3];
+        String instruction = stmt.toLowerCase().split("\\(")[0].split(" ")[3];
         String attributeName = stmt.split("\\(")[0].split(" ")[4];
 
         if(instruction.equals("add")){
@@ -109,7 +109,7 @@ public class DDLParser {
             System.err.println("Not enough values entered for table creation");
             return false;
         }
-        String tableName = ddlDetails[2].split("\\(")[0]; // Grab the table name
+        String tableName = ddlDetails[2].toLowerCase().split("\\(")[0]; // Grab the table name
         //checking if the table name is null - feel free to remove if this is redundant
         if(tableName==null){
             System.err.println("The table name is null.");
@@ -133,7 +133,7 @@ public class DDLParser {
 
         // Split param string on comma and iterate through each attribute line
         for (String params : parendParams.split(",")) {
-            params = params.strip(); // Clear whitespace chars;
+            params = params.toLowerCase().strip(); // Clear whitespace chars;
             if (params.startsWith("primarykey")) { // If line is for primary key
                 if (primaryKey != null) { // If a primary key already exists, throw error
                     System.err.println("More than one primary key specified for table");
@@ -158,7 +158,7 @@ public class DDLParser {
                 String fKey = params.substring(params.indexOf('(') + 1, params.indexOf(')')).strip();
 
                 // Split the string on references and grab table name/primary column name
-                String refParams = params.split("references")[1];
+                String refParams = params.toLowerCase().split("references")[1];
                 String refKey = refParams.substring(refParams.indexOf('(') + 1, refParams.indexOf(')')).strip();
                 String refTable = refParams.substring(0, refParams.indexOf('(')).strip();
 
