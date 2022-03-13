@@ -10,6 +10,7 @@ import storagemanager.AStorageManager;
 import java.awt.desktop.SystemEventListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /*
@@ -49,6 +50,11 @@ public class DDLParser {
      * @return true if successfully parsed/executed; false otherwise
      */
     public static boolean parseDDLStatement(String stmt) {
+        if(stmt.endsWith(";")){
+            stmt = stmt.replace(";","");
+        }else{
+            return false;
+        }
         stmt = stmt.toLowerCase().strip();
         if (stmt.toLowerCase().startsWith("create table")) { // Create statement
             return parseCreateClause(stmt);
@@ -59,7 +65,8 @@ public class DDLParser {
         else if (stmt.toLowerCase().startsWith("alter table")){
             return parseAlterClause(stmt);
         }
-        return true;
+        System.err.println("DDL Statement not properly structured, could not parse");
+        return false;
     }
 
 
@@ -69,23 +76,24 @@ public class DDLParser {
      * @return
      */
     private static boolean parseAlterClause(String stmt){
-        String tableName = stmt.toLowerCase().split("\\(")[0].split(" ")[2];
+        String tableName = stmt.toLowerCase().split("table")[1].split(" ")[1];
         Table table = (Table) catalog.getTable(tableName);
         if (!catalog.containsTable(tableName)) {
-            System.err.println("Table " + tableName + " does not exist in catalog");
+            System.err.println("Table " + tableName + " does not exist in catalog. " + stmt);
             return false;
         }
 
-        String instruction = stmt.toLowerCase().split("\\(")[0].split(" ")[3];
-        String attributeName = stmt.split("\\(")[0].split(" ")[4];
+        String instruction = stmt.toLowerCase().split(tableName)[1].split(" ")[1];
+        String attributeName = stmt.split(tableName)[1].split(" ")[2];
 
         if(instruction.equals("add")){
             //eg. alter table foo add name varchar(20);
-            String attributeType = stmt.split("\\(")[0].split(" ")[5];
+            String attributeType = stmt.split(tableName)[1].split(" ")[3];
+            System.out.println("ADDING " + attributeType);
             table.addAttribute(attributeName, attributeType);
             boolean success = false;
             if(stmt.contains("default")) {
-                Object value = stmt.split("default")[1].strip().replace(";","");
+                Object value = stmt.split("default")[1].strip().replace("\"","");
                 success = sm.addAttributeValue(table, value);   //adds value in each tuple
             }else{
                 success = sm.addAttributeValue(table, null);   //adds null in each tuple
@@ -93,12 +101,20 @@ public class DDLParser {
             return success;
         }
         else if(instruction.equals("drop")){
+            System.out.println(attributeName + " " + instruction + " "+ stmt);
+            int columnIndex = table.getColumnIndex(attributeName);
+            if(table.dropAttribute(attributeName)) {
+                for (ArrayList<Object> record : sm.getRecords(table)) {
+                    record.remove(columnIndex);
+                    sm.updateRecord(table, record, record);
+                }
+                return true;
+            }
             //eg. alter table foo drop name;
-            table.dropAttribute(attributeName);
             // this will go through the buffer manager which will reset the record size after
             //deleting a record.
         }
-        return true;
+        return false;
     }
 
 

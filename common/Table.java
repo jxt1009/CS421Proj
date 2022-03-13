@@ -89,14 +89,21 @@ public class Table implements ITable {
     public boolean dropAttribute(String name) {
         // Iterate through the list to try and find an attrib with the same name
         // If found, drop it and return true. If no match, fall back on returning false
+        Attribute removalAttribute = null;
         for (Attribute attr : attributes) {
             if (attr.getAttributeName().equals(name)) {
+                removalAttribute = attr;
                 attributes.remove(attr);
                 if(nonNullAttributes.contains(attr)) {
                     nonNullAttributes.remove(attr);
                 }
-                return true;
+                break;
             }
+        }
+        if(removalAttribute == null){
+            System.err.println("Could not drop column, " + name + " not found in table schema");
+        }else{
+            return true;
         }
         return false;
     }

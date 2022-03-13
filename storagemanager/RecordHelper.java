@@ -114,15 +114,13 @@ public class RecordHelper {
             } catch (NumberFormatException e) {
                 return false;
             }
-        } else if (attribute.getAttributeType().toLowerCase().startsWith("varchar")
-                || attribute.getAttributeType().toLowerCase().startsWith("char")) {
+        } else if (attribute.getAttributeType().toLowerCase().startsWith("varchar(")
+                || attribute.getAttributeType().toLowerCase().startsWith("char(")) {
             String type = attribute.getAttributeType();
             int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
             return ((String) o).length() <= charLen;
         } else if (attribute.getAttributeType().equalsIgnoreCase("boolean")) {
-            if (((String) o).equalsIgnoreCase("true") || ((String) o).equalsIgnoreCase("false")) {
-                return true;
-            }
+            return ((String) o).equalsIgnoreCase("true") || ((String) o).equalsIgnoreCase("false");
         }
         return false;
     }

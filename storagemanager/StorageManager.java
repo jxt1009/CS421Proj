@@ -74,6 +74,7 @@ public class StorageManager extends AStorageManager{
         // TODO ADD ATTRIBUTE VALUE
         for(ArrayList<Object> record : pageBuffer.getAllRecords(table)){
             record.add(defaultValue);
+            updateRecord(table,record,record);
         }
         return true;
     }
