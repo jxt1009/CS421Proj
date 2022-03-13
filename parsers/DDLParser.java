@@ -29,6 +29,8 @@ public class DDLParser {
     private static ACatalog catalog = ACatalog.getCatalog();
     private static AStorageManager sm = AStorageManager.getStorageManager();
 
+    static List<String> keywords = Arrays.asList("create", "integer", "double", "float","drop","alter","table","drop","boolean","varchar","char");
+
     public static boolean parseDropClause(String tableName) {
         if (!catalog.containsTable(tableName)) {
             System.err.println("Table " + tableName + " does not exist in catalog");
@@ -77,7 +79,11 @@ public class DDLParser {
      */
     private static boolean parseAlterClause(String stmt){
         String tableName = stmt.toLowerCase().split("table")[1].split(" ")[1];
+        if(keywords.contains(tableName.toLowerCase())){
+            System.err.println("tablename is a keyword");
+        }
         Table table = (Table) catalog.getTable(tableName);
+
         if (!catalog.containsTable(tableName)) {
             System.err.println("Table " + tableName + " does not exist in catalog. " + stmt);
             return false;
@@ -124,10 +130,14 @@ public class DDLParser {
             return false;
         }
         String tableName = ddlDetails[2].toLowerCase().split("\\(")[0]; // Grab the table name
+
         //checking if the table name is null - feel free to remove if this is redundant
         if(tableName==null){
             System.err.println("The table name is null.");
             return false;
+        }
+        if(keywords.contains(tableName.toLowerCase())){
+            System.err.println("tablename is a keyword");
         }
 
         //checking if table name starts with alpha char
@@ -198,7 +208,13 @@ public class DDLParser {
             } else {
                 String[] columnParams = params.split(" ");
                 if (columnParams.length >= 2) {
-                    Attribute newAttr = new Attribute(columnParams[0].strip(), columnParams[1].strip());
+                    String attributeName = columnParams[0].strip();
+                    String attributeType = columnParams[1].strip();
+                    if(keywords.contains(attributeName.toLowerCase())){
+                        System.err.println("Attribute name "+attributeName+ " contains a keyword");
+                        return false;
+                    }
+                    Attribute newAttr = new Attribute(attributeName,attributeType);
                     tableAttributes.add(newAttr);
                     if (columnParams.length > 2) {
                         if (columnParams[2].strip().equalsIgnoreCase("primarykey")) {
