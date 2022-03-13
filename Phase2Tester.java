@@ -118,7 +118,7 @@ public class Phase2Tester {
         System.out.println("Printing data after update...");
         printData(data);
 
-        updateStmt = "update large set attr2 = attr2 + 2.0 where attr1 > 70;";
+        updateStmt = "update large set attr2 = 2.0 + attr2 where attr1 > 70;";
         System.out.println("Stmt: " + updateStmt);
         if(!DMLParser.parseDMLStatement(updateStmt)){
             System.err.println("Error when updating from large table");

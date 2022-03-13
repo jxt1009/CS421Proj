@@ -147,17 +147,26 @@ public class DMLParser {
                 // Create copy of row to work on
                 ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
                 //switch statements for the operators
-                if(setParams.contains("+")||setParams.contains("-")||setParams.contains("/")||setParams.contains("*")||setParams.contains("=")){
-                    String operation = setParams.split(" ")[1];
-                    String value = setParams.split(" ")[2];
+                if(setParams.contains("+")||setParams.contains("-")||setParams.contains("/")||setParams.contains("*")){
+                    System.out.println(Arrays.toString(setParams.split(" ")));
+                    String operation = setParams.split(" ")[3].strip();
+                    String value = setParams.split(" ")[4].strip();
+                    String setColumnName = setParams.split(" ")[2].strip();
                     Object operator;
-                    boolean isNumber = RecordHelper.isNumeric(value);
-                    if(isNumber || table.containsColumn(value)){
+                    boolean isNumber = RecordHelper.isNumeric(value) || RecordHelper.isNumeric(columnName);
+                    if(isNumber || table.containsColumn(value) || table.containsColumn(columnName)){
                         float originalValue = 0;
                         if(table.containsColumn(value)) {
                             originalValue = Float.parseFloat((String) updateRow.get(table.getColumnIndex(value)));
-                            operator = Float.parseFloat(setParams.split(" ")[4]);
+                            operator = Float.parseFloat(setColumnName);
                             operation = setParams.split(" ")[3];
+                        }else if(table.containsColumn(setColumnName)) {
+                            originalValue = Float.parseFloat((String) updateRow.get(table.getColumnIndex(setColumnName)));
+                            operator = Float.parseFloat(value);
+                            operation = setParams.split(" ")[3];
+                        }else if(RecordHelper.isNumeric(value) && RecordHelper.isNumeric(setColumnName)){
+                            originalValue = Float.parseFloat(value);
+                            operator = Float.parseFloat(setColumnName);
                         }else{
                             operator = Float.parseFloat(value);
                         }
@@ -166,14 +175,13 @@ public class DMLParser {
                             case "-" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue - (float)operator));
                             case "*" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue * (float)operator));
                             case "/" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue / (float)operator));
-                            case "=" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(operator));
                         }
                     }else{
-                        operator = value.substring(1,value.length()-1);
-                        newRow.set(table.getColumnIndex(columnName), operator);
+                        newRow.set(table.getColumnIndex(columnName), newValue.replace("\"",""));
                     }
+                }else {
+                    newRow.set(table.getColumnIndex(columnName), newValue.replace("\"",""));
                 }
-
                 success = success && sm.updateRecord(table, updateRow, newRow);
 
                 // Update record in table

@@ -88,7 +88,7 @@ public class Page {
         for(int i = 0; i < record.size(); i++){
             Attribute attr = table.getAttributes().get(i);
             if(!RecordHelper.matchesType(record.get(i),attr) && !((Table)table).isANonNullableAttribute(i)){
-                System.err.println("Type does not match " + record.get(i) + " " + attr.getAttributeType());
+                System.err.println("Add Type does not match " + record.get(i) + " " + attr.getAttributeType());
                 return false;
             }
         }
@@ -151,7 +151,7 @@ public class Page {
         for(int i = 0; i < newRecord.size(); i++){
             Attribute attr = table.getAttributes().get(i);
             if(!RecordHelper.matchesType(newRecord.get(i),attr) && !((Table)table).isANonNullableAttribute(i)){
-                System.err.println("Type does not match " + newRecord.get(i) + " " + attr.getAttributeType());
+                System.err.println("Update Type does not match " + newRecord.get(i) + " " + attr.getAttributeType());
                 return false;
             }
         }

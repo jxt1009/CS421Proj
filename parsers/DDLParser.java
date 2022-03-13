@@ -100,7 +100,14 @@ public class DDLParser {
             return success;
         }
         else if(instruction.equals("drop")){
-            return table.dropAttribute(attributeName);
+            int columnIndex = table.getColumnIndex(attributeName);
+            if(table.dropAttribute(attributeName)) {
+                for (ArrayList<Object> record : sm.getRecords(table)) {
+                    record.remove(columnIndex);
+                    sm.updateRecord(table, record, record);
+                }
+                return true;
+            }
             //eg. alter table foo drop name;
             // this will go through the buffer manager which will reset the record size after
             //deleting a record.

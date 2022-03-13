@@ -61,7 +61,6 @@ public class Catalog extends ACatalog {
         Table newTable = new Table(tableName,attributes,primaryKey);
         if(!tables.containsKey(tableName)){
             tables.put(tableName,newTable);
-            saveToDisk();
             return newTable;
         }
         return null;
@@ -79,8 +78,7 @@ public class Catalog extends ACatalog {
     public boolean dropTable(String tableName) {
         if(containsTable(tableName)){
             tables.remove(tableName);
-            saveToDisk();
-            return true;
+              return true;
         }
         return false;
     }
@@ -228,7 +226,6 @@ public class Catalog extends ACatalog {
                     // Read in page ID and add it to the table
                     newTable.addPage(dis.readInt());
                 }
-
                 tables.put(tableName,newTable);
 
             }
