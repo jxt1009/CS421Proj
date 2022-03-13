@@ -4,12 +4,10 @@ import common.Attribute;
 import common.ITable;
 import common.Table;
 import storagemanager.FileManager;
-import storagemanager.Page;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
 
 public class Catalog extends ACatalog {
 
@@ -28,7 +26,7 @@ public class Catalog extends ACatalog {
                 if (file.isFile()) {
                     if (file.getName().equals("catalog")) {
                         catalogFile = file;
-                        //loadCatalogFromDisk();
+                        loadCatalogFromDisk();
                     }
                 }
             }
@@ -179,6 +177,7 @@ public class Catalog extends ACatalog {
                     dos.writeInt(pageID);
                 }
             }
+            return true;
         } catch (IOException e) {
             System.err.println("Error writing catalog to disk");
             e.printStackTrace();
@@ -239,6 +238,5 @@ public class Catalog extends ACatalog {
             e.printStackTrace();
         }
     }
-
 
 }

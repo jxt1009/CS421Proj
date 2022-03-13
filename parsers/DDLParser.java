@@ -89,7 +89,6 @@ public class DDLParser {
         if(instruction.equals("add")){
             //eg. alter table foo add name varchar(20);
             String attributeType = stmt.split(tableName)[1].split(" ")[3];
-            System.out.println("ADDING " + attributeType);
             table.addAttribute(attributeName, attributeType);
             boolean success = false;
             if(stmt.contains("default")) {
@@ -101,15 +100,7 @@ public class DDLParser {
             return success;
         }
         else if(instruction.equals("drop")){
-            System.out.println(attributeName + " " + instruction + " "+ stmt);
-            int columnIndex = table.getColumnIndex(attributeName);
-            if(table.dropAttribute(attributeName)) {
-                for (ArrayList<Object> record : sm.getRecords(table)) {
-                    record.remove(columnIndex);
-                    sm.updateRecord(table, record, record);
-                }
-                return true;
-            }
+            return table.dropAttribute(attributeName);
             //eg. alter table foo drop name;
             // this will go through the buffer manager which will reset the record size after
             //deleting a record.
@@ -188,7 +179,6 @@ public class DDLParser {
                     //if table exists, the key is in its attributes
                     //if both of those are good, also check if the type of attributes is same
                     for (Attribute attribute: catalog.getTable(refTable.toLowerCase()).getAttributes()){
-                        System.out.println(attribute.getAttributeType() + " " + foreignTable.getAttrByName(foreignKey.getRefAttribute()).getAttributeType());
                             if(attribute.getAttributeType().equalsIgnoreCase(foreignTable.getAttrByName(foreignKey.getRefAttribute()).getAttributeType())){
                                 canAddForeignKey = true;
                             }

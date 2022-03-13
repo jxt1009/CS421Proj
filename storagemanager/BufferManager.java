@@ -68,7 +68,7 @@ public class BufferManager {
         }
     }
 
-    private void writeToDisk(Page p) {
+    private boolean writeToDisk(Page p) {
         if (!pageDir.exists()) {
             pageDir.mkdirs();
         }
@@ -113,10 +113,12 @@ public class BufferManager {
             outputStream.close();
             //System.out.println(outputStream.size());
             fileOutputStream.close();
+            return true;
         } catch (IOException e) {
             System.err.println("Error writing page file to disk: " + p);
             e.printStackTrace();
         }
+        return false;
     }
 
     private void addPageToBuffer(Page page) {
@@ -298,4 +300,5 @@ public class BufferManager {
         buffer.remove(page);
         new File(pageFolder + "/" + page.getPageId()).delete();
     }
+
 }

@@ -4,6 +4,7 @@ import common.Attribute;
 import common.ITable;
 import common.Table;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,8 +74,9 @@ public class StorageManager extends AStorageManager{
     public boolean addAttributeValue(ITable table, Object defaultValue) {
         // TODO ADD ATTRIBUTE VALUE
         for(ArrayList<Object> record : pageBuffer.getAllRecords(table)){
+            ArrayList<Object> originalRecord = (ArrayList<Object>) record.clone();
             record.add(defaultValue);
-            updateRecord(table,record,record);
+            updateRecord(table,originalRecord,record);
         }
         return true;
     }
@@ -91,9 +93,13 @@ public class StorageManager extends AStorageManager{
     @Override
     public boolean dropAttributeValue(ITable table, int attrIndex) {
         ArrayList attributes = table.getAttributes();
-        if(attributes.size() != 0){
+        if(attributes.size() != 0) {
+            for (ArrayList<Object> record : pageBuffer.getAllRecords(table)) {
+                ArrayList<Object> originalRecord = (ArrayList<Object>) record.clone();
+                record.remove(attrIndex);
+                updateRecord(table, originalRecord, record);
+            }
             attributes.remove(attrIndex);
-            return true;
         }
         return false;
     }

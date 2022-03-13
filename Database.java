@@ -3,6 +3,7 @@ import parsers.DDLParser;
 import parsers.DMLParser;
 import parsers.ResultSet;
 import storagemanager.AStorageManager;
+import storagemanager.StorageManager;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -21,15 +22,21 @@ import java.util.Scanner;
  */
 public class Database {
 
+    private static StorageManager sm;
+    private static ACatalog catalog;
+
     public static void main(String[] args) {
-        ACatalog.createCatalog(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]));
-        AStorageManager.createStorageManager();
+        catalog = ACatalog.createCatalog(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]));
+        sm = (StorageManager) AStorageManager.createStorageManager();
 
         Scanner in = new Scanner(System.in);
         String input = in.next();
 
         while(!input.equalsIgnoreCase("quit")){
             if(!input.endsWith(";")) {
+                if(input.equalsIgnoreCase("quit")){
+                    break;
+                }
                 input += " " + in.next();
                 continue;
             }
@@ -52,8 +59,12 @@ public class Database {
         }
         if(terminateDatabase()){
             System.out.println("Saved and closed database successfully");
+            in.close();
+            System.exit(0);
         }else{
             System.err.println("Could not save and shutdown database");
+            in.close();
+            System.exit(-1);
         }
     }
 
@@ -74,6 +85,7 @@ public class Database {
     }
 
     public static boolean terminateDatabase(){
-        return false;
+        sm.purgePageBuffer();
+        return catalog.saveToDisk();
     }
 }
