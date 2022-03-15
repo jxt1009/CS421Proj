@@ -90,7 +90,6 @@ public class Table implements ITable {
         // Iterate through the list to try and find an attrib with the same name
         // If found, drop it and return true. If no match, fall back on returning false
         Attribute removalAttribute = null;
-        System.out.println(attributes);
         for (Attribute attr : attributes) {
             if (attr.getAttributeName().equals(name)) {
                 removalAttribute = attr;
@@ -99,7 +98,6 @@ public class Table implements ITable {
                 break;
             }
         }
-        System.out.println(attributes);
         if(removalAttribute == null){
             System.err.println("Could not drop column, " + name + " not found in table schema");
         }else{

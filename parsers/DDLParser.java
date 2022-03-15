@@ -81,6 +81,7 @@ public class DDLParser {
         String tableName = stmt.toLowerCase().split("table")[1].split(" ")[1];
         if(keywords.contains(tableName.toLowerCase())){
             System.err.println("tablename is a keyword");
+            return false;
         }
         Table table = (Table) catalog.getTable(tableName);
 
@@ -96,7 +97,7 @@ public class DDLParser {
             //eg. alter table foo add name varchar(20);
             String attributeType = stmt.split(tableName)[1].split(" ")[3];
             table.addAttribute(attributeName, attributeType);
-            boolean success = false;
+            boolean success;
             if(stmt.contains("default")) {
                 Object value = stmt.split("default")[1].strip().replace("\"","");
                 success = sm.addAttributeValue(table, value);   //adds value in each tuple
@@ -108,11 +109,12 @@ public class DDLParser {
         else if(instruction.equals("drop")){
             int columnIndex = table.getColumnIndex(attributeName);
             if(table.dropAttribute(attributeName)) {
+                boolean success = true;
                 for (ArrayList<Object> record : sm.getRecords(table)) {
                     record.remove(columnIndex);
-                    sm.updateRecord(table, record, record);
+                    success = success && sm.updateRecord(table, record, record);
                 }
-                return true;
+                return success;
             }
             //eg. alter table foo drop name;
             // this will go through the buffer manager which will reset the record size after
@@ -230,6 +232,7 @@ public class DDLParser {
                 }
             }
         }
+        boolean success = true;
         if (primaryKey == null) {
             System.err.println("Primary key attribute not specified in table declaration");
             return false;
@@ -242,12 +245,13 @@ public class DDLParser {
             System.out.println("Added table " + tableName + " successfully");
         }
         if (foreignKey != null) {
-            catalog.getTable(tableName).addForeignKey(foreignKey);
+            success = catalog.getTable(tableName).addForeignKey(foreignKey);
         }
         if(nonNullAttributes.size() > 0){
             newTable.setNonNullAttribute(nonNullAttributes);
         }
-        return true;
+        System.out.println("Table creation: " + success);
+        return success;
     }
 
 }

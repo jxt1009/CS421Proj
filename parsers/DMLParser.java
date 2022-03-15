@@ -104,11 +104,13 @@ public class DMLParser {
 
             String where = stmt.strip().split("where")[1].strip();
             ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(table, where);
-
+            boolean success = true;
+            System.out.println(parseWhere);
             for (ArrayList<Object> deleteRow : parseWhere) {
-                sm.deleteRecord(table, deleteRow.get(table.getPrimaryKeyIndex()));
+                success = success && sm.deleteRecord(table, deleteRow.get(table.getPrimaryKeyIndex()));
             }
-
+            System.out.println(success);
+            return success;
         } else if (stmt.toLowerCase().startsWith("update")) {
             // Table name is in between 'update' and 'set' tokens
             String tableName = stmt.split("update")[1].split("set")[0].strip();
@@ -186,9 +188,10 @@ public class DMLParser {
 
                 // Update record in table
             }
-            return true;
+            return success;
         }
-        return true;
+        System.err.println("Statement not formatted correctly: " + stmt);
+        return false;
     }
 
 
@@ -231,7 +234,12 @@ public class DMLParser {
             return null;
         }
         // Return final arraylist of results
-        return tree.evaluate();
+        ArrayList<ArrayList<Object>> results = tree.evaluate();
+
+        Set<ArrayList<Object>> set = new HashSet<>(results);
+        results.clear();
+        results.addAll(set);
+        return results;
     }
 
     private static Node parseNode(Table table, Stack<String> params) {
