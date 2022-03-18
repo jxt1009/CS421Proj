@@ -53,6 +53,8 @@ public class Database {
                     if(executeStatement(inputString)){
                         System.out.println("SUCCESS");
                     }
+                }else if (inputString.toLowerCase().startsWith("select")) {
+                   printTable(executeQuery(inputString));
                 }
             }
             input = in.next().toLowerCase();
@@ -79,13 +81,18 @@ public class Database {
     }
 
     public static ResultSet executeQuery(String query){
-
-        //NOT FOR THIS PHASE
-        return null;
+        return DMLParser.parseDMLQuery(query);
     }
 
     public static boolean terminateDatabase(){
         sm.purgePageBuffer();
         return catalog.saveToDisk();
+    }
+
+    public static void printTable(ResultSet tableData){
+        System.out.println(tableData.attrs());
+        for(ArrayList<Object> result:tableData.results()) {
+            System.out.println(result);
+        }
     }
 }

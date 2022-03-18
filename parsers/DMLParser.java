@@ -290,6 +290,39 @@ public class DMLParser {
      * Note: No data and error are two different cases.
      */
     public static ResultSet parseDMLQuery(String query) {
+        System.out.println(query);
+        if(query.endsWith(";")){
+            query = query.replace(";","");
+        }else{
+            System.err.println("query does end with ;");
+        }
+        if(query.contains("from")){
+            String fromString = query.split("from")[1].strip();
+            ArrayList<String> tableNames = new ArrayList<>();
+            if(fromString.contains("where")){
+                String tableNameList = fromString.split("where")[0];
+                if(tableNameList.contains(",")) {
+                    tableNames.addAll(Arrays.asList(tableNameList.split(",")));
+                }else{
+                    tableNames.add(tableNameList);
+                }
+
+            }else{
+                if(fromString.contains(",")) {
+                    tableNames.addAll(Arrays.asList(fromString.split(",")));
+                }else{
+                    tableNames.add(fromString);
+                }
+            }
+            for(String tableName : tableNames){
+                if(catalog.containsTable(tableName)){
+                    Table temp = (Table) catalog.getTable(tableName);
+                    return new ResultSet(temp.getAttributes(),sm.getRecords(temp));
+                }else{
+                    System.err.println("DB does not contain table: " + tableName);
+                }
+            }
+        }
         return null;
     }
 
