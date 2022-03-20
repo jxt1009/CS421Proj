@@ -327,6 +327,22 @@ public class DMLParser {
     }
 
     public static ResultSet parseSelectClause(String query){
+        //select * from foo;
+        if (query.contains("*")) {
+            return parseFromClause(query);
+        }
+
+        //select name, gpa from student
+        //select name, dept_name from student, department where student.dept_id = department.dept_id;
+        ArrayList<String> tableNames = new ArrayList<>();
+        String fromString = query.split("from")[1].strip();
+        //System.out.println(fromString);
+        if(fromString.contains(",")){
+            tableNames.addAll(Arrays.asList(fromString.split(",")));
+        }
+
+
+
         return null;
     }
 
