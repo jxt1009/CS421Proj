@@ -105,11 +105,9 @@ public class DMLParser {
             String where = stmt.strip().split("where")[1].strip();
             ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(table, where);
             boolean success = true;
-            System.out.println(parseWhere);
             for (ArrayList<Object> deleteRow : parseWhere) {
                 success = success && sm.deleteRecord(table, deleteRow.get(table.getPrimaryKeyIndex()));
             }
-            System.out.println(success);
             return success;
         } else if (stmt.toLowerCase().startsWith("update")) {
             // Table name is in between 'update' and 'set' tokens
@@ -150,7 +148,6 @@ public class DMLParser {
                 ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
                 //switch statements for the operators
                 if(setParams.contains("+")||setParams.contains("-")||setParams.contains("/")||setParams.contains("*")){
-                    System.out.println(Arrays.toString(setParams.split(" ")));
                     String operation = setParams.split(" ")[3].strip();
                     String value = setParams.split(" ")[4].strip();
                     String setColumnName = setParams.split(" ")[2].strip();

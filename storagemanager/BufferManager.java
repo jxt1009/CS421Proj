@@ -278,7 +278,6 @@ public class BufferManager {
             updateBuffer();
             return true;
         }
-        System.out.println("bad entry: " + pkValue);
         return false;
     }
 
