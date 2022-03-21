@@ -68,7 +68,7 @@ public class DMLParser {
             return false;
         }
         if (stmt.toLowerCase().startsWith("insert")) {
-            if(!stmt.toLowerCase().startsWith("insert into")){
+            if (!stmt.toLowerCase().startsWith("insert into")) {
                 System.err.println("Error with insert statement, use 'insert into'");
                 return false;
             }
@@ -83,16 +83,16 @@ public class DMLParser {
             String[] records = stmt.split("values")[1].split("\\)");
             //check if records[i] = getcolumnthing[i] (from table class) and send an error message
             // if they are of different types
-            for(String recordString: records) {
+            for (String recordString : records) {
                 String[] insertValues = recordString.split("\\(")[1].strip().split(",");
-                for(int i = 0; i < insertValues.length;i++){
-                    insertValues[i] = insertValues[i].strip().replace("\"","");
+                for (int i = 0; i < insertValues.length; i++) {
+                    insertValues[i] = insertValues[i].strip().replace("\"", "");
                 }
 
                 // Convert string list into arraylist of records to add
                 ArrayList<Object> record = new ArrayList<>(Arrays.asList(insertValues));
                 // Insert records
-                if(sm.insertRecord(table, record)){
+                if (sm.insertRecord(table, record)) {
                     insertedRecords += 1;
                 }
             }
@@ -123,26 +123,26 @@ public class DMLParser {
 
             // Grab table for nodes to use
             Table table = (Table) catalog.getTable(tableName);
-            if(table == null){
+            if (table == null) {
                 return false;
             }
-            if(newValue.equals("null")){
+            if (newValue.equals("null")) {
                 return !table.isNullable(table.getColumnIndex(columnName));
             }
-            if(table.getColumnIndex(columnName) == -1){
+            if (table.getColumnIndex(columnName) == -1) {
                 return false;
             }
             // Grab everything after 'where' token
             String where[] = stmt.strip().split("where");
             ArrayList<ArrayList<Object>> parseWhere;
-            if(where.length > 1){
+            if (where.length > 1) {
                 // Parse node tree and get returned list of values to update
                 parseWhere = parseWhereClause(table, where[1]);
 
-            }else{
+            } else {
                 parseWhere = sm.getRecords(table);
             }
-            if(parseWhere == null){
+            if (parseWhere == null) {
                 System.err.println("Where clause could not be parsed");
                 return false;
             }
@@ -152,78 +152,78 @@ public class DMLParser {
                 // Create copy of row to work on
                 ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
                 //switch statements for the operators
-                if(setParams.contains("+")||setParams.contains("-")||setParams.contains("/")||setParams.contains("*")){
+                if (setParams.contains("+") || setParams.contains("-") || setParams.contains("/") || setParams.contains("*")) {
                     String operation = setParams.split(" ")[3].strip();
                     String value = setParams.split(" ")[2].strip();
                     String setColumnName = setParams.split(" ")[4].strip();
                     //System.out.println(value + " " + operation + " " + setColumnName);
                     Object operator;
                     boolean isNumber = RecordHelper.isNumeric(value) || RecordHelper.isNumeric(columnName);
-                    if(isNumber || table.containsColumn(value) || table.containsColumn(columnName)){
+                    if (isNumber || table.containsColumn(value) || table.containsColumn(columnName)) {
                         Object originalValue = 0;
-                        if(table.containsColumn(value) && table.containsColumn(setColumnName)) {
+                        if (table.containsColumn(value) && table.containsColumn(setColumnName)) {
                             originalValue = updateRow.get(table.getColumnIndex(value));
-                            operator =  updateRow.get(table.getColumnIndex(setColumnName));
-                        }else if(table.containsColumn(value)) {
+                            operator = updateRow.get(table.getColumnIndex(setColumnName));
+                        } else if (table.containsColumn(value)) {
                             originalValue = updateRow.get(table.getColumnIndex(value));
-                            try{
+                            try {
                                 operator = Integer.parseInt(setColumnName);
-                            }catch(Exception e){
-                                try{
+                            } catch (Exception e) {
+                                try {
                                     operator = Double.parseDouble(setColumnName);
-                                }catch (Exception e2){
+                                } catch (Exception e2) {
                                     System.err.println("Invalid value in 'set' function");
                                     return false;
                                 }
                             }
-                        }else if(table.containsColumn(setColumnName)) {
+                        } else if (table.containsColumn(setColumnName)) {
                             originalValue = updateRow.get(table.getColumnIndex(setColumnName));
-                            try{
+                            try {
                                 operator = Integer.parseInt(value);
-                            }catch(Exception e){
-                                try{
+                            } catch (Exception e) {
+                                try {
                                     operator = Double.parseDouble(value);
-                                }catch (Exception e2){
+                                } catch (Exception e2) {
                                     System.err.println("Invalid value in 'set' function");
                                     return false;
                                 }
                             }
-                        }else{
-                            try{
+                        } else {
+                            try {
                                 operator = Integer.parseInt(value);
-                            }catch(Exception e){
-                                try{
+                            } catch (Exception e) {
+                                try {
                                     operator = Double.parseDouble(value);
-                                }catch (Exception e2){
+                                } catch (Exception e2) {
                                     System.err.println("Invalid value in 'set' function");
                                     return false;
                                 }
                             }
                         }
-                        boolean areNumbers = (operator instanceof Integer || operator instanceof Double) &&(originalValue instanceof Integer || originalValue instanceof Double);
+                        boolean areNumbers = (operator instanceof Integer || operator instanceof Double) && (originalValue instanceof Integer || originalValue instanceof Double);
                         // System.out.println(originalValue + " " + operation + " " + operator);
                         switch (operation) {
                             case "+":
-                                if(areNumbers) {
-                                    if(originalValue instanceof Integer && operator instanceof Integer) {
+                                if (areNumbers) {
+                                    if (originalValue instanceof Integer && operator instanceof Integer) {
                                         newRow.set(table.getColumnIndex(columnName), (int) originalValue + (int) operator);
                                         break;
-                                    }else if(originalValue instanceof Double && operator instanceof Integer) {
+                                    } else if (originalValue instanceof Double && operator instanceof Integer) {
                                         newRow.set(table.getColumnIndex(columnName), (double) originalValue + (int) operator);
                                         break;
-                                    }else if(originalValue instanceof Double && operator instanceof Double) {
+                                    } else if (originalValue instanceof Double && operator instanceof Double) {
                                         newRow.set(table.getColumnIndex(columnName), (double) originalValue + (double) operator);
                                         break;
-                                    }else{
+                                    } else {
                                         System.err.println("Invalid math addition operation");
                                         return false;
                                     }
-                                }else{
+                                } else {
                                     newRow.set(table.getColumnIndex(columnName), (String) operator + (String) operator);
                                     break;
                                 }
                             case "-":
-                                if(areNumbers) {
+                                if (areNumbers) {
                                     if (originalValue instanceof Integer && operator instanceof Integer) {
                                         newRow.set(table.getColumnIndex(columnName), (int) originalValue - (int) operator);
                                         break;
@@ -238,8 +238,8 @@ public class DMLParser {
                                         return false;
                                     }
                                 }
-                            case "*" :
-                                    if(areNumbers) {
+                            case "*":
+                                if (areNumbers) {
                                     if (originalValue instanceof Integer && operator instanceof Integer) {
                                         newRow.set(table.getColumnIndex(columnName), (int) originalValue * (int) operator);
                                         break;
@@ -255,9 +255,9 @@ public class DMLParser {
                                     }
                                 }
                             case "/":
-                                if(areNumbers) {
+                                if (areNumbers) {
                                     if (originalValue instanceof Integer && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), ((int)originalValue / (int) operator));
+                                        newRow.set(table.getColumnIndex(columnName), ((int) originalValue / (int) operator));
                                         break;
                                     } else if (originalValue instanceof Double && operator instanceof Integer) {
                                         newRow.set(table.getColumnIndex(columnName), (double) originalValue / (int) operator);
@@ -271,18 +271,18 @@ public class DMLParser {
                                     }
                                 }
                         }
-                    }else{
-                        newRow.set(table.getColumnIndex(columnName), newValue.replace("\"",""));
+                    } else {
+                        newRow.set(table.getColumnIndex(columnName), newValue.replace("\"", ""));
                     }
-                }else {
-                    String value = newValue.replace("\"","");
-                    if(value.equalsIgnoreCase("null")) {
+                } else {
+                    String value = newValue.replace("\"", "");
+                    if (value.equalsIgnoreCase("null")) {
                         newRow.set(table.getColumnIndex(columnName), null);
-                    }else{
+                    } else {
                         newRow.set(table.getColumnIndex(columnName), value);
                     }
                 }
-                RecordHelper.formatRecord(table,newRow);
+                RecordHelper.formatRecord(table, newRow);
                 success = success && sm.updateRecord(table, updateRow, newRow);
                 // Update record in table
             }
@@ -299,7 +299,7 @@ public class DMLParser {
         // Then convert back to a stack and pass to parseNode
         String[] params = stmt.strip().split(" ");
         StringBuilder output = new StringBuilder();
-        Stack<String> stack  = new Stack<>();
+        Stack<String> stack = new Stack<>();
 
         for (String token : params) {
             // If this is an operator token
@@ -316,19 +316,19 @@ public class DMLParser {
             }
         }
         // If any operators or tokens left on stack, append in order
-        while ( ! stack.isEmpty()) {
+        while (!stack.isEmpty()) {
             output.append(stack.pop()).append(' ');
         }
         // Split output back to a list, not ideal but hey
         String[] tokenString = output.toString().split(" ");
         // Create stack for tokens, way better than working with lists
         Stack<String> tokenStack = new Stack<>();
-        for(String str: tokenString){
+        for (String str : tokenString) {
             tokenStack.push(str);
         }
         // Parse node structure
-        Node tree = parseNode(table,tokenStack);
-        if(tree == null){
+        Node tree = parseNode(table, tokenStack);
+        if (tree == null) {
             return null;
         }
         // Return final arraylist of results
@@ -341,19 +341,19 @@ public class DMLParser {
     }
 
     private static Node parseNode(Table table, Stack<String> params) {
-        if(params.peek().equalsIgnoreCase("or") || params.peek().equalsIgnoreCase("and")){
+        if (params.peek().equalsIgnoreCase("or") || params.peek().equalsIgnoreCase("and")) {
             String conditional = params.pop();
             // Man... recursion is awesome, this saves so much work using a stack
             return new ConditionalNode(
                     parseNode(table, params), // Left node
-                    parseNode(table,params),  // Right node
+                    parseNode(table, params),  // Right node
                     conditional,              // Conditional
                     table);
         }
-        return parseSingleNode(table,params);
+        return parseSingleNode(table, params);
     }
 
-    private static Node parseSingleNode(Table table, Stack<String> params){
+    private static Node parseSingleNode(Table table, Stack<String> params) {
         // Pop values off stack in order
         String operator = params.pop();
         String rightString = params.pop();
@@ -361,7 +361,7 @@ public class DMLParser {
 
         // Left node is always a column
         ColumnNode left = new ColumnNode(leftString, table);
-        if(left.getColumnIndex() == -1){
+        if (left.getColumnIndex() == -1) {
             System.err.println("Column name does not exist in table");
             return null;
         }
@@ -388,34 +388,34 @@ public class DMLParser {
      * Note: No data and error are two different cases.
      */
     public static ResultSet parseDMLQuery(String query) {
-        if(query.endsWith(";")){
-            query = query.replace(";","");
-        }else{
+        if (query.endsWith(";")) {
+            query = query.replace(";", "");
+        } else {
             System.err.println("query does end with ;");
         }
-        if(query.contains("from")){
+        if (query.contains("from")) {
             String fromString = query.split("from")[1].strip();
             ArrayList<String> tableNames = new ArrayList<>();
-            if(fromString.contains("where")){
+            if (fromString.contains("where")) {
                 String tableNameList = fromString.split("where")[0];
-                if(tableNameList.contains(",")) {
+                if (tableNameList.contains(",")) {
                     tableNames.addAll(Arrays.asList(tableNameList.split(",")));
-                }else{
+                } else {
                     tableNames.add(tableNameList);
                 }
 
-            }else{
-                if(fromString.contains(",")) {
+            } else {
+                if (fromString.contains(",")) {
                     tableNames.addAll(Arrays.asList(fromString.split(",")));
-                }else{
+                } else {
                     tableNames.add(fromString);
                 }
             }
-            for(String tableName : tableNames){
-                if(catalog.containsTable(tableName)){
+            for (String tableName : tableNames) {
+                if (catalog.containsTable(tableName)) {
                     Table temp = (Table) catalog.getTable(tableName);
                     return new ResultSet(temp.getAttributes(), sm.getRecords(temp));
-                }else{
+                } else {
                     System.err.println("DB does not contain table: " + tableName);
                 }
             }
@@ -423,7 +423,7 @@ public class DMLParser {
         return null;
     }
 
-    public static ResultSet parseSelectClause(String query){
+    public static ResultSet parseSelectClause(String query) {
         //select * from foo;
         if (query.contains("*")) {
             return parseFromClause(query);
@@ -434,14 +434,14 @@ public class DMLParser {
         ArrayList<String> tableNames = new ArrayList<>();
         String fromString = query.split("from")[1].strip();
         //System.out.println(fromString);
-        if(fromString.contains(",")){
+        if (fromString.contains(",")) {
             tableNames.addAll(Arrays.asList(fromString.split(",")));
         }
 
         return null;
     }
 
-    public static ResultSet parseFromClause(String query){
+    public static ResultSet parseFromClause(String query) {
         return null;
     }
 }
