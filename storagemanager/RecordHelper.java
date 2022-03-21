@@ -165,7 +165,13 @@ public class RecordHelper {
             } else if (type.equalsIgnoreCase("Boolean") && origRecord.get(i) instanceof String) {
                 origRecord.set(i, Boolean.parseBoolean((String) record));
             } else if (type.toLowerCase().startsWith("varchar") || type.toLowerCase().startsWith("char")) {
-                origRecord.set(i, record);
+                int charLen = Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")")));
+                if(((String) record).length() <= charLen) {
+                    origRecord.set(i, record);
+                }else{
+                    System.err.println("Character string contains too many chars");
+                    return null;
+                }
             }
             if (!RecordHelper.matchesType(origRecord.get(i), attr)) {
                 return null;
