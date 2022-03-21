@@ -439,6 +439,8 @@ public class DMLParser {
             for (String tableName : tableNames) {
                 if (catalog.containsTable(tableName)) {
                     Table temp = (Table) catalog.getTable(tableName);
+                    //TODO Replace return statement with cartesian product result
+                    // make sure to append table names to attributes and parse out in select func
                     return new ResultSet(temp.getAttributes(), sm.getRecords(temp));
                 } else {
                     System.err.println("DB does not contain table: " + tableName);
