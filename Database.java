@@ -30,17 +30,17 @@ public class Database {
         sm = (StorageManager) AStorageManager.createStorageManager();
 
         Scanner in = new Scanner(System.in);
-        String input = in.next();
+        StringBuilder input = new StringBuilder(in.next());
 
-        while(!input.equalsIgnoreCase("quit")){
-            if(!input.endsWith(";")) {
-                if(input.equalsIgnoreCase("quit")){
+        while(!input.toString().equalsIgnoreCase("quit;")){
+            if(!input.toString().endsWith(";")) {
+                if(input.toString().equalsIgnoreCase("quit;")){
                     break;
                 }
-                input += " " + in.next();
+                input.append(" ").append(in.next());
                 continue;
             }
-            String[] inputStrings = input.split(";");
+            String[] inputStrings = input.toString().split(";");
             for(String inputString : inputStrings) {
                 inputString += ";";
                 // Ugly but will be useful when we implement executeQuery
@@ -52,12 +52,14 @@ public class Database {
                         || inputString.toLowerCase().startsWith("alter table")) {
                     if(executeStatement(inputString)){
                         System.out.println("SUCCESS");
+                    }else{
+                        System.err.println("ERROR: " + inputString);
                     }
                 }else if (inputString.toLowerCase().startsWith("select")) {
                    printTable(executeQuery(inputString));
                 }
             }
-            input = in.next().toLowerCase();
+            input = new StringBuilder(in.next().toLowerCase());
         }
         if(terminateDatabase()){
             System.out.println("Saved and closed database successfully");

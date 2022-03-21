@@ -1,12 +1,22 @@
 package conditionals;
 
+import storagemanager.RecordHelper;
+
 import java.util.ArrayList;
 
 public class ValueNode extends Node{
 
-    private final String value;
+    private final Object value;
     public ValueNode(String value){
-        this.value = value;
+        Object isNumeric = RecordHelper.returnNumeric(value);
+        if(!(isNumeric instanceof Boolean && !(boolean)isNumeric)){
+            this.value = isNumeric;
+            System.out.println(isNumeric);
+        }else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+            this.value = Boolean.parseBoolean(value);
+        }else{
+            this.value = value;
+        }
     }
 
     public Object getValue(){

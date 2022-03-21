@@ -4,6 +4,7 @@ import common.Attribute;
 import common.ITable;
 import common.Table;
 import storagemanager.FileManager;
+import storagemanager.StorageManager;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -88,7 +89,13 @@ public class Catalog extends ACatalog {
      */
     @Override
     public boolean alterTable(String tableName, Attribute attr, boolean drop, Object defaultValue) {
-        return false;
+        Table table = (Table) getTable(tableName);
+        if(drop) {
+            return StorageManager.getStorageManager().dropAttributeValue(table,table.getColumnIndex(attr.getAttributeName()))
+                    && table.addAttribute(attr.getAttributeName(),attr.getAttributeType());
+        }else {
+            return StorageManager.getStorageManager().addAttributeValue(table,defaultValue) && table.addAttribute(attr.getAttributeName(),attr.getAttributeType());
+        }
     }
 
     /**

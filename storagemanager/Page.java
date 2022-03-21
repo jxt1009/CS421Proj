@@ -33,16 +33,16 @@ public class Page {
             for (int i = 0; i < totalStoredRecords; i++){
                 ArrayList<Object> record = new ArrayList<>();
                 for(Attribute attrib : table.getAttributes()){
-                    String type = attrib.getAttributeType();
-                    if (type.equals("Integer")) {
+                    String type = attrib.getAttributeType().toLowerCase();
+                    if (type.equals("integer")) {
                         record.add(din.readInt());
-                    }else if (type.equals("Double")) {
+                    }else if (type.equals("double")) {
                         record.add(din.readDouble());
-                    }else if (type.equals("Boolean")) {
+                    }else if (type.equals("boolean")) {
                         record.add(din.readBoolean());
-                    }else if (type.startsWith("Varchar")) {
+                    }else if (type.startsWith("varchar")) {
                         record.add(FileManager.readChars(din));
-                    }else if (type.startsWith("Char")) {
+                    }else if (type.startsWith("char")) {
                         int charLen = din.readInt();
                         String outputString = "";
                         for (int readIndex = 0; readIndex < charLen; readIndex++) {
@@ -75,8 +75,12 @@ public class Page {
         return pageId;
     }
 
-    public Object getSmallestPrimaryKey(){
-        return this.records.get(0).get(table.getAttributes().indexOf(table.getPrimaryKey()));
+    public ArrayList<Object> getPrimaryKeys(){
+        ArrayList<Object> pks = new ArrayList<>();
+        for(ArrayList<Object> record : records){
+            pks.add(record.get(table.getPrimaryKeyIndex()));
+        }
+        return pks;
     }
 
     public ArrayList<ArrayList<Object>> getRecords(){
@@ -87,7 +91,7 @@ public class Page {
         int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
         for(int i = 0; i < record.size(); i++){
             Attribute attr = table.getAttributes().get(i);
-            if(!RecordHelper.matchesType(record.get(i),attr) && !((Table)table).isANonNullableAttribute(i)){
+            if(!RecordHelper.matchesType(record.get(i),attr) && !((Table)table).isNullable(i)){
                 System.err.println("Add Type does not match " + record.get(i) + " " + attr.getAttributeType());
                 return false;
             }
@@ -148,10 +152,19 @@ public class Page {
     }
 
     public boolean updateRecord(ITable table, Object primaryKey, ArrayList<Object> newRecord) {
+        if (RecordHelper.formatRecord((Table) table, newRecord) == null) {
+            System.err.println("Record incorrectly formatted, attributes did not match");
+            return false;
+
+        }
         for(int i = 0; i < newRecord.size(); i++){
             Attribute attr = table.getAttributes().get(i);
-            if(!RecordHelper.matchesType(newRecord.get(i),attr) && !((Table)table).isANonNullableAttribute(i)){
-                System.err.println("Update Type does not match " + newRecord.get(i) + " " + attr.getAttributeType());
+                if(newRecord.get(i)==null && !((Table)table).isNullable(i)){
+                    System.err.println("Attempting to set nonnull column '" + attr.getAttributeName() + "' to null value");
+                    return false;
+                }
+            if(!RecordHelper.matchesType(newRecord.get(i),attr)){
+                System.err.println("Type does not match: " + newRecord.get(i).getClass() + " " + attr);
                 return false;
             }
         }
@@ -162,8 +175,10 @@ public class Page {
         }
         int recordIndex = deleteRecord(table,primaryKey);
         if(recordIndex != -1) {
-            return addRecord(table, newRecord,recordIndex);
+            records.add(recordIndex,newRecord);
+            return true;
         }
+        System.err.println("Could not update record");
         return false;
     }
 

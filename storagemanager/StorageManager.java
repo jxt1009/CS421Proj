@@ -72,13 +72,7 @@ public class StorageManager extends AStorageManager{
      */
     @Override
     public boolean addAttributeValue(ITable table, Object defaultValue) {
-        // TODO ADD ATTRIBUTE VALUE
-        for(ArrayList<Object> record : pageBuffer.getAllRecords(table)){
-            ArrayList<Object> originalRecord = (ArrayList<Object>) record.clone();
-            record.add(defaultValue);
-            updateRecord(table,originalRecord,record);
-        }
-        return true;
+        return pageBuffer.addAttributeValue(table,defaultValue);
     }
 
     /**

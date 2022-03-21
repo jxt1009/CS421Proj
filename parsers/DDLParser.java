@@ -26,8 +26,8 @@ import java.util.Locale;
  */
 public class DDLParser {
 
-    private static ACatalog catalog = ACatalog.getCatalog();
-    private static AStorageManager sm = AStorageManager.getStorageManager();
+    private static final ACatalog catalog = ACatalog.getCatalog();
+    private static final AStorageManager sm = AStorageManager.getStorageManager();
 
     static List<String> keywords = Arrays.asList("create", "integer", "double", "float","drop","alter","table","drop","boolean","varchar","char");
 
@@ -96,26 +96,40 @@ public class DDLParser {
         if(instruction.equals("add")){
             //eg. alter table foo add name varchar(20);
             String attributeType = stmt.split(tableName)[1].split(" ")[3];
-            table.addAttribute(attributeName, attributeType);
             boolean success;
             if(stmt.contains("default")) {
                 Object value = stmt.split("default")[1].strip().replace("\"","");
-                success = sm.addAttributeValue(table, value);   //adds value in each tuple
+                success = catalog.alterTable(tableName,new Attribute(attributeName,attributeType),false,value);
             }else{
-                success = sm.addAttributeValue(table, null);   //adds null in each tuple
+                success = catalog.alterTable(tableName,new Attribute(attributeName,attributeType),false,null);
             }
             return success;
         }
         else if(instruction.equals("drop")){
             int columnIndex = table.getColumnIndex(attributeName);
-            if(table.dropAttribute(attributeName)) {
-                boolean success = true;
-                for (ArrayList<Object> record : sm.getRecords(table)) {
-                    record.remove(columnIndex);
-                    success = success && sm.updateRecord(table, record, record);
-                }
-                return success;
+            if(columnIndex == -1){
+                System.err.println("Column '"+attributeName+"'does not exist in table '"+tableName+"'");
+                return false;
             }
+            if(table.isKey(columnIndex)){
+                System.err.println("Cannot drop a key column");
+                return false;
+            }
+            ArrayList<ArrayList<Object>> oldRecords = sm.getRecords(table);
+            ArrayList<Attribute> newAttributes = table.getAttributes();
+            newAttributes.remove(columnIndex);
+            if(!catalog.dropTable(table.getTableName())){
+                return false;
+            }
+            Table newTable = (Table) catalog.addTable(table.getTableName(),newAttributes,table.getPrimaryKey());
+            boolean success =  true;
+                for (ArrayList<Object> record : oldRecords) {
+                    ArrayList<Object> newRecord = (ArrayList<Object>) record.clone();
+                    newRecord.remove(columnIndex);
+                    success = success && sm.insertRecord(newTable, newRecord);
+                }
+            return success;
+
             //eg. alter table foo drop name;
             // this will go through the buffer manager which will reset the record size after
             //deleting a record.

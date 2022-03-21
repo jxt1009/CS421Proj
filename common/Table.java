@@ -15,7 +15,7 @@ public class Table implements ITable {
     private ForeignKey foreignKey;
     private String index;
 
-    private final ArrayList<Integer> pageList = new ArrayList<>();
+    private ArrayList<Integer> pageList = new ArrayList<>();
 
     public Table(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
         this.tableName = tableName;
@@ -164,14 +164,19 @@ public class Table implements ITable {
     public boolean checkNonNullAttributes(ArrayList<Object> record) {
         for(int i = 0; i < attributes.size();i++){
             // If attribute is non null but record object is null, error
-            if(nonNullAttributes.contains(attributes.get(i)) && record.get(i).equals("null")){
+            if(!isNullable(i) && record.get(i)==null){
                 return false;
             }
         }
         return true;
     }
 
-    public boolean isANonNullableAttribute(int i) {
-        return nonNullAttributes.contains(attributes.get(i));
+    public boolean isNullable(int i) {
+        return !nonNullAttributes.contains(attributes.get(i));
     }
+
+    public boolean isKey(int columnIndex) {
+        return attributes.get(columnIndex).equals(primaryKey) || foreignKeys.contains(attributes.get(columnIndex));
+    }
+
 }
