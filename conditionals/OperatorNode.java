@@ -61,6 +61,9 @@ public class OperatorNode extends Node {
                             results.add(leftRecord);
                         }
                         break;
+                    default:
+                        System.err.println("Invalid operation in 'where' clause: " + operator);
+                        return null;
                 }
             }
         } else {
@@ -104,6 +107,9 @@ public class OperatorNode extends Node {
                                 results.add(leftRecord);
                             }
                             break;
+                        default:
+                            System.err.println("Invalid operation in 'where' clause: " + operator);
+                            return null;
                     }
                 }
             }

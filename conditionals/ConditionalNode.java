@@ -22,8 +22,6 @@ public class ConditionalNode extends Node {
         ArrayList<ArrayList<Object>> results = new ArrayList<>();
         ArrayList<ArrayList<Object>> leftResults = left.evaluate();
         ArrayList<ArrayList<Object>> rightResults = right.evaluate();
-        System.out.println(leftResults);
-        System.out.println(rightResults);
         if (conditional.equalsIgnoreCase("and")) {
             for (ArrayList<Object> leftRecord : leftResults) {
                 Object leftKey = leftRecord.get(table.getPrimaryKeyIndex());
