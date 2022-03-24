@@ -19,17 +19,7 @@ public class StorageManager extends AStorageManager{
 
     @Override
     public boolean clearTableData(ITable table) {
-        ArrayList attributes = table.getAttributes();
-        // iterate through attribs of table and call dropAttribute one by one
-        if(attributes.size()!=0){
-            for (int i =0; i <attributes.size(); i++){
-                Attribute attribute = (Attribute) attributes.get(i);
-                table.dropAttribute(attribute.attributeName());
-            }
-            return true;
-        }
-        else
-            return false;
+        return pageBuffer.clearTableData(table);
 
     }
 

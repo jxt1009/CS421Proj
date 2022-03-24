@@ -11,11 +11,16 @@ public class ValueNode extends Node{
         Object isNumeric = RecordHelper.returnNumeric(value);
         if(!(isNumeric instanceof Boolean && !(boolean)isNumeric)){
             this.value = isNumeric;
-            System.out.println(isNumeric);
         }else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
             this.value = Boolean.parseBoolean(value);
         }else{
-            this.value = value;
+            System.out.println(value);
+            if(value.contains("\"")) {
+                this.value = value.replace("\"","");
+            }else{
+                this.value =null;
+                System.err.println("String not defined with quotes in where clause");
+            }
         }
     }
 

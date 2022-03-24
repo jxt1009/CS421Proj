@@ -2,6 +2,7 @@ package parsers;
 
 import catalog.ACatalog;
 import common.Table;
+import common.Attribute;
 import conditionals.*;
 import storagemanager.AStorageManager;
 import storagemanager.RecordHelper;
@@ -401,50 +402,111 @@ public class DMLParser {
 
     public static ResultSet parseSelectClause(String query) {
         //select * from foo;
+        query = query.toLowerCase();
+        // Parse 'from' clause and get temporary return table;
+        Table temp = parseFromClause(query);
+        if(temp == null){
+            System.err.println("Error parsing 'from' clause of query");
+            return null;
+        }
+        ArrayList<ArrayList<Object>> rows;
+        if(query.toLowerCase().contains("where")){
+            rows = parseWhereClause(temp,query.split("where")[1].strip());
+        }else{
+            rows = sm.getRecords(temp);
+        }
+        rows= (ArrayList<ArrayList<Object>>) rows.clone();
         if (query.contains("*")) {
-            return parseFromClause(query);
-        }
+            ArrayList<Attribute> attributes = (ArrayList<Attribute>) temp.getAttributes().clone();
+            ResultSet set = new ResultSet(attributes, rows);
+            sm.clearTableData(temp);
+            return set;
+        }else {
+            String selectStmt = query.split("select")[1].strip().split("from")[0].strip();
+            System.out.println(selectStmt);
+            //select name, gpa from student
+            //select name, dept_name from student, department where student.dept_id = department.dept_id;
+            //TODO select the columns
+            // Two options: 1) new table, create/insert all new rows from selected columns,
+            // 2) alter current 'temp' table, use drop attribute functions
 
-        //select name, gpa from student
-        //select name, dept_name from student, department where student.dept_id = department.dept_id;
-        ArrayList<String> tableNames = new ArrayList<>();
-        String fromString = query.split("from")[1].strip();
-        //System.out.println(fromString);
-        if (fromString.contains(",")) {
-            tableNames.addAll(Arrays.asList(fromString.split(",")));
-        }
 
+        }
         return null;
     }
 
-    public static ResultSet parseFromClause(String query) {
+    public static Table parseFromClause(String query) {
+        boolean success = true;
         if (query.contains("from")) {
             String fromString = query.split("from")[1].strip();
             ArrayList<String> tableNames = new ArrayList<>();
             if (fromString.contains("where")) {
                 String tableNameList = fromString.split("where")[0];
+
                 if (tableNameList.contains(",")) {
-                    tableNames.addAll(Arrays.asList(tableNameList.split(",")));
+                    tableNames.addAll(Arrays.asList(tableNameList.replace(" ","").split(",")));
                 } else {
                     tableNames.add(tableNameList);
                 }
 
             } else {
                 if (fromString.contains(",")) {
-                    tableNames.addAll(Arrays.asList(fromString.split(",")));
+                    tableNames.addAll(Arrays.asList(fromString.replace(" ","").split(",")));
                 } else {
                     tableNames.add(fromString);
                 }
             }
+            ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+            attributes.add(new Attribute("id","integer"));
+            ArrayList<ArrayList<Object>> rows = new ArrayList<>();
             for (String tableName : tableNames) {
+                tableName = tableName.strip();
                 if (catalog.containsTable(tableName)) {
                     Table temp = (Table) catalog.getTable(tableName);
+                    ArrayList<Attribute> tableAttr = temp.getAttributes();
+                    ArrayList<ArrayList<Object>> records = sm.getRecords(temp);
+                    for(Attribute attr: tableAttr){
+                        attributes.add(new Attribute(temp.getTableName()+"."+attr.getAttributeName(),attr.getAttributeType()));
+                    }
+                    if(rows.size() == 0){
+                        rows = records;
+                    }else {
+                        ArrayList<ArrayList<Object>>tempRows = (ArrayList<ArrayList<Object>>) rows.clone();
+                        for (ArrayList<Object> row : tempRows) {
+                            rows.remove(row);
+                            for (ArrayList<Object> combineRow : records) {
+                                ArrayList<Object> tempRow = (ArrayList<Object>) row.clone();
+                                tempRow.addAll(combineRow);
+                                success = success && rows.add(tempRow);
+                            }
+                        }
+                    }
                     //TODO Replace return statement with cartesian product result
                     // make sure to append table names to attributes and parse out in select func
-                    return new ResultSet(temp.getAttributes(), sm.getRecords(temp));
+                    //return new ResultSet(temp.getAttributes(), sm.getRecords(temp));
                 } else {
                     System.err.println("DB does not contain table: " + tableName);
                 }
+            }
+            // TODO change to return table, but what about primary key attributre?
+            // Insert values into new table, and pass table to 'where' clause
+            Table temp = new Table("~",attributes,attributes.get(0));
+            int rowIndex = 0;
+            for(ArrayList<Object> row : rows){
+                row = (ArrayList<Object>) row.clone();
+                row.add(0,rowIndex);
+                rowIndex += 1;
+                success = success && sm.insertRecord(temp, row);
+                if(!success){
+                    System.err.println("Error creating cartesian product row");
+                    break;
+                }
+            }
+            if(!success){
+                System.err.println("Could not perform cartesian product");
+                return null;
+            }else{
+                return temp;
             }
         }
         return null;

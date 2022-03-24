@@ -7,103 +7,118 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class RecordHelper {
-    public static boolean compareObjects(Object o1, Object o2, Attribute attribute) {
-        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
+    public static boolean compareObjects(Object o1, Object o2) {
+        return lessThan(o1, o2);
+    }
+
+    public static boolean lessThan(Object o1, Object o2) {
+        if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 < (Integer) o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
+        } else if(o1 instanceof Integer && o2 instanceof Double){
+            return (Integer) o1 < (Double) o2;
+        } else if(o1 instanceof Double && o2 instanceof Integer){
+            return (Double) o1 < (Integer) o2;
+        }else if(o1 instanceof Double && o2 instanceof Double){
             return (Double) o1 < (Double) o2;
-        }else if (attribute.getAttributeType().equalsIgnoreCase("Boolean")){
-            return (boolean) o1 != (boolean) o2;
+        } else if(o1 instanceof Boolean && o2 instanceof Boolean){
+            return !(Boolean) o1 && (Boolean) o2;
         } else if (o1 instanceof String || o1 instanceof Character) {
             return ((String) o1).compareTo((String) o2) < 0;
         }
+        System.err.println("Invalid types compared: '"+o1.getClass() + "' and '"+o2.getClass()+"'");
         return false;
     }
 
-    public static boolean lessThan(Object o1, Object o2, Attribute attribute) {
-        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
-            return (Integer) o1 < (Integer) o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
-            return (Double) o1 < (Double) o2;
-        } else if (o1 instanceof String || o1 instanceof Character) {
-            return ((String) o1).compareTo((String) o2) < 0;
-        }
-        return false;
-    }
-
-    public static boolean lessThanEquals(Object o1, Object o2, Attribute attribute) {
-        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
+    public static boolean lessThanEquals(Object o1, Object o2) {
+        if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 <= (Integer) o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
-            return (Double) o1 <= (Double) o2;
+        } else if(o1 instanceof Integer && o2 instanceof Double){
+            return (Integer) o1 <= (Double) o2;
+        } else if(o1 instanceof Double && o2 instanceof Double){
+            return (Double) o1 >= (Double) o2;
+        }else if(o1 instanceof Double && o2 instanceof Integer){
+            return (Double) o1 >= (Integer) o2;
+        } else if(o1 instanceof Boolean && o2 instanceof Boolean){
+            return !(Boolean) o1 && (Boolean) o2;
         } else if (o1 instanceof String || o1 instanceof Character) {
             return ((String) o1).compareTo((String) o2) <= 0;
         }
+        System.err.println("Invalid types compared: '"+o1.getClass() + "' and '"+o2.getClass()+"'");
         return false;
     }
 
-    public static boolean greaterThan(Object o1, Object o2, Attribute attribute) {
-        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
+    public static boolean greaterThan(Object o1, Object o2) {
+        if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 > (Integer) o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
+        } else if(o1 instanceof Integer && o2 instanceof Double){
+            return (Integer) o1 > (Double) o2;
+        } else if(o1 instanceof Double && o2 instanceof Integer){
+            return (Double) o1 > (Integer) o2;
+        } else if(o1 instanceof Double && o2 instanceof Double){
             return (Double) o1 > (Double) o2;
+        }else if(o1 instanceof Boolean && o2 instanceof Boolean){
+            return (Boolean) o1 && !(Boolean) o2;
         } else if (o1 instanceof String || o1 instanceof Character) {
             return ((String) o1).compareTo((String) o2) > 0;
         }
+        System.err.println("Invalid types compared: '"+o1.getClass() + "' and '"+o2.getClass()+"'");
         return false;
     }
 
-    public static boolean greaterThanEquals(Object o1, Object o2, Attribute attribute) {
-        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
+    public static boolean greaterThanEquals(Object o1, Object o2) {
+        if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 >= (Integer) o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
+        } else if(o1 instanceof Integer && o2 instanceof Double){
+            return (Integer) o1 >= (Double) o2;
+        } else if(o1 instanceof Double && o2 instanceof Double){
             return (Double) o1 >= (Double) o2;
+        } else if(o1 instanceof Double && o2 instanceof Integer){
+            return (Double) o1 >= (Integer) o2;
+        } else if(o1 instanceof Boolean && o2 instanceof Boolean){
+            return (Boolean) o1 && !(Boolean) o2;
         } else if (o1 instanceof String || o1 instanceof Character) {
             return ((String) o1).compareTo((String) o2) >= 0;
         }
+        System.err.println("Invalid types compared: '"+o1.getClass() + "' and '"+o2.getClass()+"'");
         return false;
     }
 
-    public static boolean equals(Object o1, Object o2, Attribute attribute) {
+    public static boolean equals(Object o1, Object o2) {
         if(o1 == null || o2 == null){
             return false;
         }
-        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
-            return (Integer)o1 == (Integer) o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
-            return (Double)o1 == (Double)o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("boolean")) {
-            return (boolean)o1 == (boolean)o2;
-        } else {
-            return ((String) o1).strip().equals(((String) o2).strip());
+        if(isNumeric(o1) && isNumeric(o2)) {
+            return o1.equals(o2);
+        }else if (o1 instanceof Boolean && o2 instanceof Boolean) {
+            return o1.equals(o2);
+        }else if(o1 instanceof String && o2 instanceof String){
+            return ((String)o1).equals((String) o2);
         }
+        System.err.println("Incompatible types compared");
+        return false;
     }
 
-    public static boolean notEquals(Object o1, Object o2, Attribute attribute) {
-        if (attribute.getAttributeType().equalsIgnoreCase("integer")) {
+    public static boolean notEquals(Object o1, Object o2) {
+        if (o1 instanceof String || o1 instanceof Character) {
+            return ((String) o1).compareTo((String) o2) != 0;
+        }else{
             return o1 != o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("double")) {
-            return o1 != o2;
-        } else if (attribute.getAttributeType().equalsIgnoreCase("boolean")) {
-            return o1 != o2;
-        } else {
-            return !((String) o1).strip().equals(((String) o2).strip());
         }
     }
 
     public static boolean isNumeric(Object o) {
         try {
-            Integer.parseInt((String) o);
+            Integer.parseInt(o.toString());
             return true;
         } catch (NumberFormatException e) {
         }
         try {
-            Double.parseDouble((String) o);
+            Double.parseDouble(o.toString());
             return true;
         } catch (NumberFormatException e) {
         }
         try {
-            Float.parseFloat((String) o);
+            Float.parseFloat(o.toString());
             return true;
         } catch (NumberFormatException e) {
         }
@@ -115,11 +130,11 @@ public class RecordHelper {
             return false;
         }
         try {
-            return Integer.parseInt((String) o);
+            return Integer.parseInt(o.toString());
         } catch (NumberFormatException e) {
         }
         try {
-            return Double.parseDouble((String) o);
+            return Double.parseDouble(o.toString());
         } catch (NumberFormatException e) {
         }
         return false;

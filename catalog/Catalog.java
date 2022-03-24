@@ -9,6 +9,7 @@ import storagemanager.StorageManager;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class Catalog extends ACatalog {
 
@@ -109,6 +110,7 @@ public class Catalog extends ACatalog {
         if(containsTable(tableName)){
             Table table = (Table) getTable(tableName);
             table.getAttributes().clear();
+            table.clearPages();
             table.getPageList().clear();
             return true;
         }
@@ -156,7 +158,7 @@ public class Catalog extends ACatalog {
             for(String t : tables.keySet()){
                 Table table = tables.get(t);
                 // Write out the length of the table name and the table name
-                FileManager.writeChars(table.getTableName(),dos);
+                FileManager.writeChars(table.getTableName().toLowerCase(),dos);
                 // Write out the length of the attribute name and the name
                 FileManager.writeChars(table.getPrimaryKey().attributeName(),dos);
 
@@ -203,7 +205,7 @@ public class Catalog extends ACatalog {
             int numTables = dis.readInt();
             for(int i = 0; i < numTables;i++) {
                 // Read in table name based on # of chars to parse
-                String tableName = FileManager.readChars(dis);
+                String tableName = FileManager.readChars(dis).toLowerCase();
 
                 // Read in primary key name based on len
                 String primaryKeyName = FileManager.readChars(dis);

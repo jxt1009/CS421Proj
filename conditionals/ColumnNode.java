@@ -15,6 +15,9 @@ public class ColumnNode extends Node{
 
     public ColumnNode(String columnName, Table table){
         this.table = table;
+        if(!table.containsColumn(columnName)){
+            System.err.println("Cannot parse where, column not valid");
+        }
         for(int i = 0; i < table.getAttributes().size();i++){
             if(table.getAttributes().get(i).getAttributeName().equals(columnName)){
                 columnIndex = i;

@@ -200,7 +200,7 @@ public class BufferManager {
             return false;
         }
         if (RecordHelper.formatRecord(table, record) == null) {
-            System.err.println("Record improperly formatted");
+            System.err.println("Record improperly formatted: " + record + " for attributes: " + table.getAttributes());
             return false;
         }
         if (tablePages.size() == 0) {
@@ -233,13 +233,15 @@ public class BufferManager {
 
     private int canAddRecord(Table table, Page page, ArrayList<Object> record) {
         Object recordVal = record.get(table.getPrimaryKeyIndex());
-        Attribute primaryKeyAttribute = table.getPrimaryKey();
-        if (page.getRecords().size() <= 1) {
+        if(page.getRecords().size() == 0){
+            return 0;
+        }
+        if (page.getRecords().size() == 1) {
             Object compareVal = page.getRecords().get(0).get(table.getPrimaryKeyIndex());
-            if (RecordHelper.equals(compareVal, recordVal, primaryKeyAttribute)) {
+            if (RecordHelper.equals(compareVal, recordVal)) {
                 return -2;
             }
-            if (RecordHelper.compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
+            if (RecordHelper.compareObjects(recordVal, compareVal)) {
                 return 0;
             } else {
                 return 1;
@@ -248,15 +250,15 @@ public class BufferManager {
         for (int i = 1; i < page.getRecords().size(); i++) {
             Object previousVal = page.getRecords().get(i - 1).get(table.getPrimaryKeyIndex());
             Object compareVal = page.getRecords().get(i).get(table.getPrimaryKeyIndex());
-            if (RecordHelper.equals(compareVal, recordVal, primaryKeyAttribute)
-                    || RecordHelper.equals(previousVal, recordVal, primaryKeyAttribute)) {
+            if (RecordHelper.equals(compareVal, recordVal)
+                    || RecordHelper.equals(previousVal, recordVal)) {
                 return -2;
             }
-            if (RecordHelper.compareObjects(previousVal, recordVal, primaryKeyAttribute)
-                    && RecordHelper.compareObjects(recordVal, compareVal, primaryKeyAttribute)) {
+            if (RecordHelper.compareObjects(previousVal, recordVal)
+                    && RecordHelper.compareObjects(recordVal, compareVal)) {
                 return i;
             }
-            if (i == 1 && RecordHelper.compareObjects(recordVal, previousVal, primaryKeyAttribute)) {
+            if (i == 1 && RecordHelper.compareObjects(recordVal, previousVal)) {
                 return 0;
             }
         }
@@ -302,15 +304,33 @@ public class BufferManager {
     }
 
     private int getAvailablePageID(){
-        if(pageList.size() == 0){
-            return 0;
+        File[] files = pageDir.listFiles();
+        int fileMax = 0;
+        int bufferMax = 0;
+        if(files.length > 0) {
+            String lastPage = files[files.length - 1].getName();
+            Integer pageID = Integer.parseInt(lastPage);
+            fileMax = pageID;
         }
-        return pageList.get(pageList.size() -1) + 1;
+        if(pageList.size() > 0){
+            bufferMax = pageList.get(pageList.size() - 1);
+        }
+        int max = 0;
+        if(fileMax > max){
+            max = fileMax;
+        }
+        if(bufferMax > max){
+            max = bufferMax;
+        }
+        max = max + 1;
+        return max ;
     }
 
     private void removePageFromBuffer(Page page) {
         buffer.remove(page);
-        new File(pageFolder + "/" + page.getPageId()).delete();
+        if(pageList.contains(page.getPageId())){
+            pageList.remove(page.getPageId());
+        }
     }
 
 
@@ -319,6 +339,19 @@ public class BufferManager {
         for(ArrayList<Object> record : getAllRecords(table)){
             record.add(defaultValue);
         }
+        return true;
+    }
+
+    public boolean clearTableData(ITable table) {
+        Table t = (Table) table;
+        for(Page pageID : loadAllPages(t)){
+            File pageFile = new File(pageFolder + "/" +pageID.getPageId());
+            if(pageFile.exists()) {
+                pageFile.delete();
+            }
+            removePageFromBuffer(pageID);
+        }
+        t.clear();
         return true;
     }
 }

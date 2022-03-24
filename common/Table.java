@@ -1,5 +1,8 @@
 package common;
 
+import storagemanager.StorageManager;
+
+import java.io.File;
 import java.util.ArrayList;
 
 public class Table implements ITable {
@@ -10,7 +13,7 @@ public class Table implements ITable {
     private ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     private final ArrayList<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
     private ArrayList<Attribute> nonNullAttributes = new ArrayList<>();
-    private final Attribute primaryKey;
+    private Attribute primaryKey;
     private final int primaryKeyIndex;
     private ForeignKey foreignKey;
     private String index;
@@ -179,4 +182,18 @@ public class Table implements ITable {
         return attributes.get(columnIndex).equals(primaryKey) || foreignKeys.contains(attributes.get(columnIndex));
     }
 
+    public void clearPages() {
+        StorageManager.getStorageManager().clearTableData(this);
+    }
+
+    public void clear() {
+        this.primaryKey = null;
+        this.pageList.clear();
+        this.attributes.clear();
+        this.foreignKey = null;
+        this.foreignKeys.clear();
+        this.nonNullAttributes.clear();
+        this.index = null;
+
+    }
 }

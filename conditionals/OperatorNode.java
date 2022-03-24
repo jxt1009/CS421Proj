@@ -38,36 +38,34 @@ public class OperatorNode extends Node {
                 Object leftValue = leftRecord.get(columnIndex);
                 Object rightValue = ((ValueNode) right).getValue();
 
-                Attribute columnAttribute = ((ColumnNode) left).getColumnAttribute();
-
                 switch (operator) {
                     case ">":
-                        if (RecordHelper.greaterThan(leftValue, rightValue, columnAttribute)) {
+                        if (RecordHelper.greaterThan(leftValue, rightValue)) {
                             results.add(leftRecord);
                         }
                         break;
                     case "<":
-                        if (RecordHelper.lessThan(leftValue, rightValue, columnAttribute)) {
+                        if (RecordHelper.lessThan(leftValue, rightValue)) {
                             results.add(leftRecord);
                         }
                         break;
                     case "=":
-                        if (RecordHelper.equals(leftValue, rightValue, columnAttribute)) {
+                        if (RecordHelper.equals(leftValue, rightValue)) {
                             results.add(leftRecord);
                         }
                         break;
                     case ">=":
-                        if (RecordHelper.greaterThanEquals(leftValue, rightValue, columnAttribute)) {
+                        if (RecordHelper.greaterThanEquals(leftValue, rightValue)) {
                             results.add(leftRecord);
                         }
                         break;
                     case "<=":
-                        if (RecordHelper.lessThanEquals(leftValue, rightValue, columnAttribute)) {
+                        if (RecordHelper.lessThanEquals(leftValue, rightValue)) {
                             results.add(leftRecord);
                         }
                         break;
                     case "!=":
-                        if (RecordHelper.notEquals(leftValue, rightValue, columnAttribute)) {
+                        if (RecordHelper.notEquals(leftValue, rightValue)) {
                             results.add(leftRecord);
                         }
                         break;
@@ -83,36 +81,34 @@ public class OperatorNode extends Node {
                     int rightColumnIndex = ((ColumnNode) right).getColumnIndex();
                     Object rightValue = rightRecord.get(rightColumnIndex);
 
-                    Attribute columnAttribute = ((ColumnNode) left).getColumnAttribute();
-
                     switch (operator) {
                         case ">":
-                            if (RecordHelper.greaterThan(leftValue, rightValue, columnAttribute)) {
+                            if (RecordHelper.greaterThan(leftValue, rightValue)) {
                                 results.add(leftRecord);
                             }
                             break;
                         case "<":
-                            if (RecordHelper.lessThan(leftValue, rightValue, columnAttribute)) {
+                            if (RecordHelper.lessThan(leftValue, rightValue)) {
                                 results.add(leftRecord);
                             }
                             break;
                         case "=":
-                            if (RecordHelper.equals(leftValue, rightValue, columnAttribute)) {
+                            if (RecordHelper.equals(leftValue, rightValue)) {
                                 results.add(leftRecord);
                             }
                             break;
                         case ">=":
-                            if (RecordHelper.greaterThanEquals(leftValue, rightValue, columnAttribute)) {
+                            if (RecordHelper.greaterThanEquals(leftValue, rightValue)) {
                                 results.add(leftRecord);
                             }
                             break;
                         case "<=":
-                            if (RecordHelper.lessThanEquals(leftValue, rightValue, columnAttribute)) {
+                            if (RecordHelper.lessThanEquals(leftValue, rightValue)) {
                                 results.add(leftRecord);
                             }
                             break;
                         case "!=":
-                            if (RecordHelper.notEquals(leftValue, rightValue, columnAttribute)) {
+                            if (RecordHelper.notEquals(leftValue, rightValue)) {
                                 results.add(leftRecord);
                             }
                             break;
