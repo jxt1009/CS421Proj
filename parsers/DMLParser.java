@@ -325,7 +325,7 @@ public class DMLParser {
         // Create stack for tokens, way better than working with lists
         Stack<String> tokenStack = new Stack<>();
         for (String str : tokenString) {
-            tokenStack.push(str);
+            tokenStack.push(str.strip());
         }
         // Parse node structure
         Node tree = parseNode(table, tokenStack);

@@ -12,7 +12,7 @@ public class ConditionalNode extends Node {
 
     public ConditionalNode(Node left, Node right, String conditional, Table table) {
         this.table = table;
-        this.conditional = conditional;
+        this.conditional = conditional.strip();
         this.left = left;
         this.right = right;
     }
@@ -22,6 +22,8 @@ public class ConditionalNode extends Node {
         ArrayList<ArrayList<Object>> results = new ArrayList<>();
         ArrayList<ArrayList<Object>> leftResults = left.evaluate();
         ArrayList<ArrayList<Object>> rightResults = right.evaluate();
+        System.out.println(leftResults);
+        System.out.println(rightResults);
         if (conditional.equalsIgnoreCase("and")) {
             for (ArrayList<Object> leftRecord : leftResults) {
                 Object leftKey = leftRecord.get(table.getPrimaryKeyIndex());

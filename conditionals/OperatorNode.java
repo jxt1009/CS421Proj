@@ -20,14 +20,6 @@ public class OperatorNode extends Node {
         this.right = right;
     }
 
-    public void setLeft(Node leftNode) {
-        this.left = leftNode;
-    }
-
-    public void setRight(Node rightNode) {
-        this.right = rightNode;
-    }
-
     public ArrayList<ArrayList<Object>> evaluate() {
         ArrayList<ArrayList<Object>> results = new ArrayList<>();
         ArrayList<ArrayList<Object>> leftResults = left.evaluate();

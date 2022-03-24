@@ -35,9 +35,9 @@ public class RecordHelper {
         } else if(o1 instanceof Integer && o2 instanceof Double){
             return (Integer) o1 <= (Double) o2;
         } else if(o1 instanceof Double && o2 instanceof Double){
-            return (Double) o1 >= (Double) o2;
+            return (Double) o1 <= (Double) o2;
         }else if(o1 instanceof Double && o2 instanceof Integer){
-            return (Double) o1 >= (Integer) o2;
+            return (Double) o1 <= (Integer) o2;
         } else if(o1 instanceof Boolean && o2 instanceof Boolean){
             return !(Boolean) o1 && (Boolean) o2;
         } else if (o1 instanceof String || o1 instanceof Character) {
@@ -87,14 +87,19 @@ public class RecordHelper {
         if(o1 == null || o2 == null){
             return false;
         }
-        if(isNumeric(o1) && isNumeric(o2)) {
-            return o1.equals(o2);
-        }else if (o1 instanceof Boolean && o2 instanceof Boolean) {
-            return o1.equals(o2);
-        }else if(o1 instanceof String && o2 instanceof String){
-            return ((String)o1).equals((String) o2);
+        if(o1 instanceof Integer && o2 instanceof Integer){
+            return (Integer) o1 == (Integer) o2;
+        } else if(o1 instanceof Integer && o2 instanceof Double){
+            return ((Integer) o1).equals(((Double) o2).intValue());
+        } else if(o1 instanceof Double && o2 instanceof Double){
+            return (Double) o1 == (Double) o2;
+        } else if(o1 instanceof Double && o2 instanceof Integer){
+            return ((Double) o1).equals(((Integer) o2));
+        } else if(o1 instanceof Boolean && o2 instanceof Boolean){
+            return (Boolean) o1 == (Boolean) o2;
+        } else if (o1 instanceof String || o1 instanceof Character) {
+            return ((String) o1).compareTo((String) o2) == 0;
         }
-        System.err.println("Incompatible types compared");
         return false;
     }
 
