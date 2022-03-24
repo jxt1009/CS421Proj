@@ -92,6 +92,9 @@ public class Database {
     }
 
     public static void printTable(ResultSet tableData){
+        if(tableData == null){
+            return;
+        }
         System.out.println(tableData.attrs());
         for(ArrayList<Object> result:tableData.results()) {
             System.out.println(result);

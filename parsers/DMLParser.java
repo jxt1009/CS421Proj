@@ -415,6 +415,10 @@ public class DMLParser {
         }else{
             rows = sm.getRecords(temp);
         }
+        if(rows == null){
+            System.err.println("Where clause could not be parsed");
+            return null;
+        }
         rows= (ArrayList<ArrayList<Object>>) rows.clone();
         if (query.contains("*")) {
             ArrayList<Attribute> attributes = (ArrayList<Attribute>) temp.getAttributes().clone();
