@@ -514,4 +514,8 @@ public class DMLParser {
         }
         return null;
     }
+
+    public static ResultSet parseOrderByClause(String query){
+        return null;
+    }
 }
