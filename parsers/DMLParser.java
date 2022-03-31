@@ -2,7 +2,6 @@ package parsers;
 
 import catalog.ACatalog;
 import common.Table;
-import common.Attribute;
 import conditionals.*;
 import storagemanager.AStorageManager;
 import storagemanager.RecordHelper;
@@ -69,7 +68,7 @@ public class DMLParser {
             return false;
         }
         if (stmt.toLowerCase().startsWith("insert")) {
-            if (!stmt.toLowerCase().startsWith("insert into")) {
+            if(!stmt.toLowerCase().startsWith("insert into")){
                 System.err.println("Error with insert statement, use 'insert into'");
                 return false;
             }
@@ -84,16 +83,16 @@ public class DMLParser {
             String[] records = stmt.split("values")[1].split("\\)");
             //check if records[i] = getcolumnthing[i] (from table class) and send an error message
             // if they are of different types
-            for (String recordString : records) {
+            for(String recordString: records) {
                 String[] insertValues = recordString.split("\\(")[1].strip().split(",");
-                for (int i = 0; i < insertValues.length; i++) {
-                    insertValues[i] = insertValues[i].strip().replace("\"", "");
+                for(int i = 0; i < insertValues.length;i++){
+                    insertValues[i] = insertValues[i].strip();
                 }
 
                 // Convert string list into arraylist of records to add
                 ArrayList<Object> record = new ArrayList<>(Arrays.asList(insertValues));
                 // Insert records
-                if (sm.insertRecord(table, record)) {
+                if(sm.insertRecord(table, record)){
                     insertedRecords += 1;
                 }
             }
@@ -106,9 +105,11 @@ public class DMLParser {
             String where = stmt.strip().split("where")[1].strip();
             ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(table, where);
             boolean success = true;
+            System.out.println(parseWhere);
             for (ArrayList<Object> deleteRow : parseWhere) {
                 success = success && sm.deleteRecord(table, deleteRow.get(table.getPrimaryKeyIndex()));
             }
+            System.out.println(success);
             return success;
         } else if (stmt.toLowerCase().startsWith("update")) {
             // Table name is in between 'update' and 'set' tokens
@@ -124,26 +125,21 @@ public class DMLParser {
 
             // Grab table for nodes to use
             Table table = (Table) catalog.getTable(tableName);
-            if (table == null) {
+            if(table == null){
                 return false;
             }
-            if (newValue.equals("null")) {
-                return !table.isNullable(table.getColumnIndex(columnName));
+            if(newValue.equals("null")){
+                return !table.isANonNullableAttribute(table.getColumnIndex(columnName));
             }
-            if (table.getColumnIndex(columnName) == -1) {
+            if(table.getColumnIndex(columnName) == -1){
                 return false;
             }
             // Grab everything after 'where' token
-            String where[] = stmt.strip().split("where");
-            ArrayList<ArrayList<Object>> parseWhere;
-            if (where.length > 1) {
-                // Parse node tree and get returned list of values to update
-                parseWhere = parseWhereClause(table, where[1]);
+            String where = stmt.strip().split("where")[1].strip();
 
-            } else {
-                parseWhere = sm.getRecords(table);
-            }
-            if (parseWhere == null) {
+            // Parse node tree and get returned list of values to update
+            ArrayList<ArrayList<Object>> parseWhere = parseWhereClause(table, where);
+            if(parseWhere == null){
                 System.err.println("Where clause could not be parsed");
                 return false;
             }
@@ -153,138 +149,43 @@ public class DMLParser {
                 // Create copy of row to work on
                 ArrayList<Object> newRow = (ArrayList<Object>) updateRow.clone();
                 //switch statements for the operators
-                if (setParams.contains("+") || setParams.contains("-") || setParams.contains("/") || setParams.contains("*")) {
+                if(setParams.contains("+")||setParams.contains("-")||setParams.contains("/")||setParams.contains("*")){
+                    System.out.println(Arrays.toString(setParams.split(" ")));
                     String operation = setParams.split(" ")[3].strip();
-                    String value = setParams.split(" ")[2].strip();
-                    String setColumnName = setParams.split(" ")[4].strip();
-                    //System.out.println(value + " " + operation + " " + setColumnName);
+                    String value = setParams.split(" ")[4].strip();
+                    String setColumnName = setParams.split(" ")[2].strip();
                     Object operator;
                     boolean isNumber = RecordHelper.isNumeric(value) || RecordHelper.isNumeric(columnName);
-                    if (isNumber || table.containsColumn(value) || table.containsColumn(columnName)) {
-                        Object originalValue = 0;
-                        if (table.containsColumn(value) && table.containsColumn(setColumnName)) {
-                            originalValue = updateRow.get(table.getColumnIndex(value));
-                            operator = updateRow.get(table.getColumnIndex(setColumnName));
-                        } else if (table.containsColumn(value)) {
-                            originalValue = updateRow.get(table.getColumnIndex(value));
-                            try {
-                                operator = Integer.parseInt(setColumnName);
-                            } catch (Exception e) {
-                                try {
-                                    operator = Double.parseDouble(setColumnName);
-                                } catch (Exception e2) {
-                                    System.err.println("Invalid value in 'set' function");
-                                    return false;
-                                }
-                            }
-                        } else if (table.containsColumn(setColumnName)) {
-                            originalValue = updateRow.get(table.getColumnIndex(setColumnName));
-                            try {
-                                operator = Integer.parseInt(value);
-                            } catch (Exception e) {
-                                try {
-                                    operator = Double.parseDouble(value);
-                                } catch (Exception e2) {
-                                    System.err.println("Invalid value in 'set' function");
-                                    return false;
-                                }
-                            }
-                        } else {
-                            try {
-                                operator = Integer.parseInt(value);
-                            } catch (Exception e) {
-                                try {
-                                    operator = Double.parseDouble(value);
-                                } catch (Exception e2) {
-                                    System.err.println("Invalid value in 'set' function");
-                                    return false;
-                                }
-                            }
+                    if(isNumber || table.containsColumn(value) || table.containsColumn(columnName)){
+                        float originalValue = 0;
+                        if(table.containsColumn(value)) {
+                            originalValue = Float.parseFloat((String) updateRow.get(table.getColumnIndex(value)));
+                            operator = Float.parseFloat(setColumnName);
+                            operation = setParams.split(" ")[3];
+                        }else if(table.containsColumn(setColumnName)) {
+                            originalValue = Float.parseFloat((String) updateRow.get(table.getColumnIndex(setColumnName)));
+                            operator = Float.parseFloat(value);
+                            operation = setParams.split(" ")[3];
+                        }else if(RecordHelper.isNumeric(value) && RecordHelper.isNumeric(setColumnName)){
+                            originalValue = Float.parseFloat(value);
+                            operator = Float.parseFloat(setColumnName);
+                        }else{
+                            operator = Float.parseFloat(value);
                         }
-                        boolean areNumbers = (operator instanceof Integer || operator instanceof Double) && (originalValue instanceof Integer || originalValue instanceof Double);
-                        // System.out.println(originalValue + " " + operation + " " + operator);
                         switch (operation) {
-                            case "+":
-                                if (areNumbers) {
-                                    if (originalValue instanceof Integer && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), (int) originalValue + (int) operator);
-                                        break;
-                                    } else if (originalValue instanceof Double && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), (double) originalValue + (int) operator);
-                                        break;
-                                    } else if (originalValue instanceof Double && operator instanceof Double) {
-                                        newRow.set(table.getColumnIndex(columnName), (double) originalValue + (double) operator);
-                                        break;
-                                    } else {
-                                        System.err.println("Invalid math addition operation");
-                                        return false;
-                                    }
-                                } else {
-                                    newRow.set(table.getColumnIndex(columnName), (String) operator + (String) operator);
-                                    break;
-                                }
-                            case "-":
-                                if (areNumbers) {
-                                    if (originalValue instanceof Integer && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), (int) originalValue - (int) operator);
-                                        break;
-                                    } else if (originalValue instanceof Double && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), (double) originalValue - (int) operator);
-                                        break;
-                                    } else if (originalValue instanceof Double && operator instanceof Double) {
-                                        newRow.set(table.getColumnIndex(columnName), (double) originalValue - (double) operator);
-                                        break;
-                                    } else {
-                                        System.err.println("Invalid math subtraction operation");
-                                        return false;
-                                    }
-                                }
-                            case "*":
-                                if (areNumbers) {
-                                    if (originalValue instanceof Integer && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), (int) originalValue * (int) operator);
-                                        break;
-                                    } else if (originalValue instanceof Double && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), (double) originalValue * (int) operator);
-                                        break;
-                                    } else if (originalValue instanceof Double && operator instanceof Double) {
-                                        newRow.set(table.getColumnIndex(columnName), (double) originalValue * (double) operator);
-                                        break;
-                                    } else {
-                                        System.err.println("Invalid math multiplication operation");
-                                        return false;
-                                    }
-                                }
-                            case "/":
-                                if (areNumbers) {
-                                    if (originalValue instanceof Integer && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), ((int) originalValue / (int) operator));
-                                        break;
-                                    } else if (originalValue instanceof Double && operator instanceof Integer) {
-                                        newRow.set(table.getColumnIndex(columnName), (double) originalValue / (int) operator);
-                                        break;
-                                    } else if (originalValue instanceof Double && operator instanceof Double) {
-                                        newRow.set(table.getColumnIndex(columnName), (double) originalValue / (double) operator);
-                                        break;
-                                    } else {
-                                        System.err.println("Invalid math division operation");
-                                        return false;
-                                    }
-                                }
+                            case "+" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue + (float)operator));
+                            case "-" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue - (float)operator));
+                            case "*" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue * (float)operator));
+                            case "/" -> newRow.set(table.getColumnIndex(columnName), String.valueOf(originalValue / (float)operator));
                         }
-                    } else {
-                        newRow.set(table.getColumnIndex(columnName), newValue.replace("\"", ""));
+                    }else{
+                        newRow.set(table.getColumnIndex(columnName), newValue.replace("\"",""));
                     }
-                } else {
-                    String value = newValue.replace("\"", "");
-                    if (value.equalsIgnoreCase("null")) {
-                        newRow.set(table.getColumnIndex(columnName), null);
-                    } else {
-                        newRow.set(table.getColumnIndex(columnName), value);
-                    }
+                }else {
+                    newRow.set(table.getColumnIndex(columnName), newValue.replace("\"",""));
                 }
-                RecordHelper.formatRecord(table, newRow);
                 success = success && sm.updateRecord(table, updateRow, newRow);
+
                 // Update record in table
             }
             return success;
@@ -300,7 +201,7 @@ public class DMLParser {
         // Then convert back to a stack and pass to parseNode
         String[] params = stmt.strip().split(" ");
         StringBuilder output = new StringBuilder();
-        Stack<String> stack = new Stack<>();
+        Stack<String> stack  = new Stack<>();
 
         for (String token : params) {
             // If this is an operator token
@@ -317,19 +218,19 @@ public class DMLParser {
             }
         }
         // If any operators or tokens left on stack, append in order
-        while (!stack.isEmpty()) {
+        while ( ! stack.isEmpty()) {
             output.append(stack.pop()).append(' ');
         }
         // Split output back to a list, not ideal but hey
         String[] tokenString = output.toString().split(" ");
         // Create stack for tokens, way better than working with lists
         Stack<String> tokenStack = new Stack<>();
-        for (String str : tokenString) {
-            tokenStack.push(str.strip());
+        for(String str: tokenString){
+            tokenStack.push(str);
         }
         // Parse node structure
-        Node tree = parseNode(table, tokenStack);
-        if (tree == null) {
+        Node tree = parseNode(table,tokenStack);
+        if(tree == null){
             return null;
         }
         // Return final arraylist of results
@@ -342,19 +243,19 @@ public class DMLParser {
     }
 
     private static Node parseNode(Table table, Stack<String> params) {
-        if (params.peek().equalsIgnoreCase("or") || params.peek().equalsIgnoreCase("and")) {
+        if(params.peek().equalsIgnoreCase("or") || params.peek().equalsIgnoreCase("and")){
             String conditional = params.pop();
             // Man... recursion is awesome, this saves so much work using a stack
             return new ConditionalNode(
                     parseNode(table, params), // Left node
-                    parseNode(table, params),  // Right node
+                    parseNode(table,params),  // Right node
                     conditional,              // Conditional
                     table);
         }
-        return parseSingleNode(table, params);
+        return parseSingleNode(table,params);
     }
 
-    private static Node parseSingleNode(Table table, Stack<String> params) {
+    private static Node parseSingleNode(Table table, Stack<String> params){
         // Pop values off stack in order
         String operator = params.pop();
         String rightString = params.pop();
@@ -362,7 +263,7 @@ public class DMLParser {
 
         // Left node is always a column
         ColumnNode left = new ColumnNode(leftString, table);
-        if (left.getColumnIndex() == -1) {
+        if(left.getColumnIndex() == -1){
             System.err.println("Column name does not exist in table");
             return null;
         }
@@ -389,130 +290,67 @@ public class DMLParser {
      * Note: No data and error are two different cases.
      */
     public static ResultSet parseDMLQuery(String query) {
-        if (query.endsWith(";")) {
-            query = query.replace(";", "");
-        } else {
+        System.out.println(query);
+        if(query.endsWith(";")){
+            query = query.replace(";","");
+        }else{
             System.err.println("query does end with ;");
         }
-        if(query.startsWith("select")){
-            return parseSelectClause(query);
-        }
-        return null;
-    }
-
-    public static ResultSet parseSelectClause(String query) {
-        //select * from foo;
-        query = query.toLowerCase();
-        // Parse 'from' clause and get temporary return table;
-        Table temp = parseFromClause(query);
-        if(temp == null){
-            System.err.println("Error parsing 'from' clause of query");
-            return null;
-        }
-        ArrayList<ArrayList<Object>> rows;
-        if(query.toLowerCase().contains("where")){
-            rows = parseWhereClause(temp,query.split("where")[1].strip());
-        }else{
-            rows = sm.getRecords(temp);
-        }
-        if(rows == null){
-            System.err.println("Where clause could not be parsed");
-            return null;
-        }
-        rows= (ArrayList<ArrayList<Object>>) rows.clone();
-        if (query.contains("*")) {
-            ArrayList<Attribute> attributes = (ArrayList<Attribute>) temp.getAttributes().clone();
-            ResultSet set = new ResultSet(attributes, rows);
-            sm.clearTableData(temp);
-            return set;
-        }else {
-            String selectStmt = query.split("select")[1].strip().split("from")[0].strip();
-            System.out.println(selectStmt);
-            //select name, gpa from student
-            //select name, dept_name from student, department where student.dept_id = department.dept_id;
-            //TODO select the columns
-            // Two options: 1) new table, create/insert all new rows from selected columns,
-            // 2) alter current 'temp' table, use drop attribute functions
-
-
-        }
-        return null;
-    }
-
-    public static Table parseFromClause(String query) {
-        boolean success = true;
-        if (query.contains("from")) {
+        if(query.contains("from")){
             String fromString = query.split("from")[1].strip();
             ArrayList<String> tableNames = new ArrayList<>();
-            if (fromString.contains("where")) {
+            if(fromString.contains("where")){
                 String tableNameList = fromString.split("where")[0];
-
-                if (tableNameList.contains(",")) {
-                    tableNames.addAll(Arrays.asList(tableNameList.replace(" ","").split(",")));
-                } else {
+                if(tableNameList.contains(",")) {
+                    tableNames.addAll(Arrays.asList(tableNameList.split(",")));
+                }else{
                     tableNames.add(tableNameList);
                 }
 
-            } else {
-                if (fromString.contains(",")) {
-                    tableNames.addAll(Arrays.asList(fromString.replace(" ","").split(",")));
-                } else {
+            }else{
+                if(fromString.contains(",")) {
+                    tableNames.addAll(Arrays.asList(fromString.split(",")));
+                }else{
                     tableNames.add(fromString);
                 }
             }
-            ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-            attributes.add(new Attribute("id","integer"));
-            ArrayList<ArrayList<Object>> rows = new ArrayList<>();
-            for (String tableName : tableNames) {
-                tableName = tableName.strip();
-                if (catalog.containsTable(tableName)) {
+            for(String tableName : tableNames){
+                if(catalog.containsTable(tableName)){
                     Table temp = (Table) catalog.getTable(tableName);
-                    ArrayList<Attribute> tableAttr = temp.getAttributes();
-                    ArrayList<ArrayList<Object>> records = sm.getRecords(temp);
-                    for(Attribute attr: tableAttr){
-                        attributes.add(new Attribute(temp.getTableName()+"."+attr.getAttributeName(),attr.getAttributeType()));
-                    }
-                    if(rows.size() == 0){
-                        rows = records;
-                    }else {
-                        ArrayList<ArrayList<Object>>tempRows = (ArrayList<ArrayList<Object>>) rows.clone();
-                        for (ArrayList<Object> row : tempRows) {
-                            rows.remove(row);
-                            for (ArrayList<Object> combineRow : records) {
-                                ArrayList<Object> tempRow = (ArrayList<Object>) row.clone();
-                                tempRow.addAll(combineRow);
-                                success = success && rows.add(tempRow);
-                            }
-                        }
-                    }
-                    //TODO Replace return statement with cartesian product result
-                    // make sure to append table names to attributes and parse out in select func
-                    //return new ResultSet(temp.getAttributes(), sm.getRecords(temp));
-                } else {
+                    return new ResultSet(temp.getAttributes(),sm.getRecords(temp));
+                }else{
                     System.err.println("DB does not contain table: " + tableName);
                 }
             }
-            // TODO change to return table, but what about primary key attributre?
-            // Insert values into new table, and pass table to 'where' clause
-            Table temp = new Table("~",attributes,attributes.get(0));
-            int rowIndex = 0;
-            for(ArrayList<Object> row : rows){
-                row = (ArrayList<Object>) row.clone();
-                row.add(0,rowIndex);
-                rowIndex += 1;
-                success = success && sm.insertRecord(temp, row);
-                if(!success){
-                    System.err.println("Error creating cartesian product row");
-                    break;
-                }
-            }
-            if(!success){
-                System.err.println("Could not perform cartesian product");
-                return null;
-            }else{
-                return temp;
-            }
         }
+        return null;
+    }
+
+    public static ResultSet parseSelectClause(String query){
+        //select * from foo;
+        if (query.contains("*")) {
+            return parseFromClause(query);
+        }
+
+        //select name, gpa from student
+        //select name, dept_name from student, department where student.dept_id = department.dept_id;
+        ArrayList<String> tableNames = new ArrayList<>();
+        String fromString = query.split("from")[1].strip();
+        //System.out.println(fromString);
+        if(fromString.contains(",")){
+            tableNames.addAll(Arrays.asList(fromString.split(",")));
+        }
+
+
+
+        return null;
+    }
+
+    public static ResultSet parseFromClause(String query){
+        return null;
+    }
+
+    public static ResultSet parseOrderByClause(String query) {
         return null;
     }
 }
