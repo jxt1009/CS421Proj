@@ -419,6 +419,15 @@ public class DMLParser {
             System.err.println("Where clause could not be parsed");
         }
         rows= (ArrayList<ArrayList<Object>>) rows.clone();
+
+        // have the original temp table to see if it should be ordered
+        Table orderedTable = temp;
+
+        // if the query contains an 'orderBy' clause
+        if(query.toLowerCase().contains("orderby")){
+            orderedTable = parseOrderByClause(temp, query);
+        }
+
         if (query.contains("*")) {
             ArrayList<Attribute> attributes = (ArrayList<Attribute>) temp.getAttributes().clone();
             ResultSet set = new ResultSet(attributes, rows);
@@ -515,7 +524,16 @@ public class DMLParser {
         return null;
     }
 
-    public static ResultSet parseOrderByClause(String query){
+    public static Table parseOrderByClause(Table temp, String query){
+        if (query.toLowerCase().contains("orderby")){
+            // getting the attribute to order by
+            String attOrderBy = query.split("orderBy")[1].strip();
+            
+
+            // make sure that the column name is an attribute with in the select clause
+
+
+        }
         return null;
     }
 }
