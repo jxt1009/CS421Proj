@@ -450,6 +450,9 @@ public class DMLParser {
 //                    temp.dropAttribute(String.valueOf(tempAttributes.get(i)));
 //                }
             }
+            //getting rows of the resulting temp table to make the resultset
+            rows = sm.getRecords(temp);
+            results = new ResultSet(attributes,rows);
         }
         if(query.toLowerCase().contains("orderby")) {
             results = parseOrderByClause(query.split("orderby")[1].strip(), results,temp);
