@@ -443,6 +443,9 @@ public class DMLParser {
             //TODO select the columns
             // Two options: 1) new table, create/insert all new rows from selected columns,
             // 2) alter current 'temp' table, use drop attribute functions
+            //the dropping thing would be a better choice since it will be a smaller operation
+            //the columns have already been removed bc of "from"
+            //this removes the rows of the attributes that have to be removed.
 
 
         }
