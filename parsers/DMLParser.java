@@ -401,6 +401,7 @@ public class DMLParser {
     }
 
     public static ResultSet parseSelectClause(String query) {
+        //select * from foo;
         query = query.toLowerCase();
         // Parse 'from' clause and get temporary return table;
         Table temp = parseFromClause(query);
@@ -417,48 +418,31 @@ public class DMLParser {
         if(rows == null){
             System.err.println("Where clause could not be parsed");
         }
-        rows= (ArrayList<ArrayList<Object>>) rows.clone();
-
-        // have the original temp table to see if it should be ordered
-        Table orderedTable = temp;
-        String orderByAtt;
-        // if the query contains an 'orderBy' clause
-        if(query.toLowerCase().contains("orderby")){
-            orderByAtt = query.split("orderBy")[1].strip();
-            // TODO test if this attribute is in the select statement
-            orderedTable = parseOrderByClause(temp, orderByAtt);
-        }
-        //select * from foo;
+        rows = (ArrayList<ArrayList<Object>>) rows.clone();
+        ResultSet results;
         if (query.contains("*")) {
             ArrayList<Attribute> attributes = (ArrayList<Attribute>) temp.getAttributes().clone();
-            ResultSet set = new ResultSet(attributes, rows);
-            sm.clearTableData(temp);
-            return set;
+
+            results = new ResultSet(attributes, rows);
         }else {
-            //select name, gpa from student
-            //select name, dept_name from student, department where student.dept_id = department.dept_id;
-            //selectStmt = name, dept_name
             String selectStmt = query.split("select")[1].strip().split("from")[0].strip();
             System.out.println(selectStmt);
+            results = null;
+            //select name, gpa from student
+            //select name, dept_name from student, department where student.dept_id = department.dept_id;
             //TODO select the columns
             // Two options: 1) new table, create/insert all new rows from selected columns,
             // 2) alter current 'temp' table, use drop attribute functions
-            //the dropping thing would be a better choice since it will be a smaller operation
-            //the columns have already been removed bc of "from"
-            //this removes the rows of the attributes that have to be removed.
-            String[] strSplit = selectStmt.split(",");
-
-            ArrayList<String> strList = new ArrayList<String>(
-                    Arrays.asList(strSplit));
-            ArrayList<Attribute> attributes = (ArrayList<Attribute>) strList.clone();
-
-
-            ResultSet set = new ResultSet(attributes, rows);
-            return set;
 
 
         }
-        //return null;
+        if(query.toLowerCase().contains("orderby")) {
+            results = parseOrderByClause(query.split("orderby")[1].strip(), results,temp);
+        }else{
+            results = parseOrderByClause("id", results,temp);
+        }
+        sm.clearTableData(temp);
+        return results;
     }
 
     public static Table parseFromClause(String query) {
@@ -468,7 +452,6 @@ public class DMLParser {
             ArrayList<String> tableNames = new ArrayList<>();
             if (fromString.contains("where")) {
                 String tableNameList = fromString.split("where")[0];
-
                 if (tableNameList.contains(",")) {
                     tableNames.addAll(Arrays.asList(tableNameList.replace(" ","").split(",")));
                 } else {
@@ -476,6 +459,9 @@ public class DMLParser {
                 }
 
             } else {
+                if(fromString.contains("orderby")) {
+                    fromString = fromString.split("orderby")[0].strip();
+                }
                 if (fromString.contains(",")) {
                     tableNames.addAll(Arrays.asList(fromString.replace(" ","").split(",")));
                 } else {
@@ -538,48 +524,30 @@ public class DMLParser {
         return null;
     }
 
-    public static Table parseOrderByClause(Table table, String query){
-        boolean success = true;
-
-        // getting the attributes of the table
-        ArrayList<Attribute> attributes = table.getAttributes();
-
-        // for ordered rows for the temp table
-        ArrayList<ArrayList<Object>> rows = new ArrayList<>();
-
-        // temp table
-        Table temp = new Table(table.getTableName(),attributes,attributes.get(0));
-
-        // if there is a '.' in the query meaning a specification of the table
-        // and attribute, split ant set the query to that attribute
-        if(query.contains(".")){
-            String[] arrOfStr = query.split(".", 2);
-
-            if(!(arrOfStr[0].equals(table.getTableName()))){
-                System.err.println("Error locating table for the order by");
-                return null;
-            }
-            query = arrOfStr[1];
-        }
-        // for each attribute in the table go through them and see if one matches the query
-        for(Attribute attribute : attributes){
-            String t_attribute =  attribute.getAttributeName();
-            if(t_attribute.equals(query)){
-                ArrayList<ArrayList<Object>> records = sm.getRecords(table);
-                rows = records;
-                int index = table.getColumnIndex(query);
-                for(ArrayList<Object> row : rows){
-                    row.get(index);
-                    // compare that row at that index and another row, based on that order and add to
-                    // the temp table return the temp table.
+    public static ResultSet parseOrderByClause(String query, ResultSet set,Table table){
+        String columnName = RecordHelper.checkTableColumns(table,query);
+        int columnIndex = table.getColumnIndex(columnName);
+        if(columnIndex != -1) {
+            ArrayList<ArrayList<Object>> tableRecords = set.results();
+            ArrayList<ArrayList<Object>> finalList = new ArrayList<>();
+            while(!tableRecords.isEmpty()) {
+                ArrayList<Object> minRow = new ArrayList<Object>();
+                for (ArrayList<Object> row : tableRecords) {
+                    if(minRow.size() == 0){
+                        minRow = row;
+                        continue;
+                    }
+                    if(RecordHelper.lessThanEquals(row.get(columnIndex),minRow.get(columnIndex))){
+                        minRow = row;
+                    }
                 }
-                break;
+                tableRecords.remove(minRow);
+                finalList.add(minRow);
             }
-            else{
-                System.err.println("Error locating attribute in table");
-                return null;
-            }
+            return new ResultSet(set.attrs(),finalList);
+        }else{
+            System.err.println("Column name '" + columnName + "' not found in table to orderby");
+            return null;
         }
-        return null;
     }
 }
