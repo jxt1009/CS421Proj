@@ -530,13 +530,11 @@ public class DMLParser {
     }
 
     public static Table parseOrderByClause(Table table, String query){
-        boolean success = true;
-
         // getting the attributes of the table
         ArrayList<Attribute> attributes = table.getAttributes();
 
-        // for ordered rows for the temp table
-        ArrayList<ArrayList<Object>> rows = new ArrayList<>();
+        // for rows in temp table to go through
+        ArrayList<ArrayList<Object>> rows;
 
         // for ordered rows for the temp table
         ArrayList<ArrayList<Object>> tempRows = new ArrayList<>();
@@ -554,9 +552,8 @@ public class DMLParser {
 
             // if the table attribute == the query
             if(t_attribute.equals(query)){
-                ArrayList<ArrayList<Object>> records = sm.getRecords(table);
                 // the rows of the table
-                rows = records;
+                rows = sm.getRecords(table);
                 // the index of the column to look at
                 int index = table.getColumnIndex(query);
                 // var for the minRow
@@ -570,12 +567,15 @@ public class DMLParser {
                             minRow = nextRow;
                             tempRows.add(minRow);
                             rows.remove(minRow);
+                            // insert the min Row to the temp table
+                            sm.insertRecord(temp, minRow);
                         }
                     }
                 }
-                break;
+                // return temp table with the ordered records
+                return temp;
             }
         }
-        return temp;
+        return table;
     }
 }
