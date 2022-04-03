@@ -538,6 +538,9 @@ public class DMLParser {
         // for ordered rows for the temp table
         ArrayList<ArrayList<Object>> rows = new ArrayList<>();
 
+        // for ordered rows for the temp table
+        ArrayList<ArrayList<Object>> tempRows = new ArrayList<>();
+
         // temp table
         Table temp = new Table(table.getTableName(),attributes,attributes.get(0));
 
@@ -548,23 +551,31 @@ public class DMLParser {
         // for each attribute in the table go through them and see if one matches the query
         for(Attribute attribute : attributes){
             String t_attribute =  attribute.getAttributeName();
+
+            // if the table attribute == the query
             if(t_attribute.equals(query)){
                 ArrayList<ArrayList<Object>> records = sm.getRecords(table);
+                // the rows of the table
                 rows = records;
+                // the index of the column to look at
                 int index = table.getColumnIndex(query);
+                // var for the minRow
+                ArrayList<Object> minRow;
                 for(ArrayList<Object> row : rows){
-                    //if (RecordHelper.compareObjects(row.get(index), ) == true){
-                        // compare that row at that index and another row, based on that order and add to
-                        // the temp table return the temp table.
-                   //}
+                    minRow = row;
+                    for(ArrayList<Object> rowVale : rows){
+                        ArrayList<Object> nextRow = rowVale;
+                        // if the minRow value at the index is less than the next value
+                        if(RecordHelper.compareObjects(nextRow.get(index), minRow.get(index))){
+                            minRow = nextRow;
+                            tempRows.add(minRow);
+                            rows.remove(minRow);
+                        }
+                    }
                 }
                 break;
             }
-            else{
-                System.err.println("Error locating attribute in table");
-                return null;
-            }
         }
-        return null;
+        return temp;
     }
 }
