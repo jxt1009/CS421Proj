@@ -553,7 +553,14 @@ public class DMLParser {
         for(Attribute attribute : attributes){
             String t_attribute =  attribute.getAttributeName();
             if(t_attribute.equals(query)){
-
+                ArrayList<ArrayList<Object>> records = sm.getRecords(table);
+                rows = records;
+                int index = table.getColumnIndex(query);
+                for(ArrayList<Object> row : rows){
+                    row.get(index);
+                    // compare that row at that index and another row, based on that order and add to
+                    // the temp table return the temp table.
+                }
                 break;
             }
             else{
