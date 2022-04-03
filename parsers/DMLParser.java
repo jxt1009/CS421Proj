@@ -427,9 +427,6 @@ public class DMLParser {
         }else {
             String selectStmt = query.split("select")[1].strip().split("from")[0].strip();
             System.out.println(selectStmt);
-            results = null;
-            //select name, gpa from student
-            //select name, dept_name from student, department where student.dept_id = department.dept_id;
             //TODO select the columns
             // Two options: 1) new table, create/insert all new rows from selected columns,
             // 2) alter current 'temp' table, use drop attribute functions
@@ -440,15 +437,11 @@ public class DMLParser {
                     Arrays.asList(strSplit));
             ArrayList<Attribute> attributes = (ArrayList<Attribute>) strList.clone();
             ArrayList<Attribute> tempAttributes = temp.getAttributes();
-
             //deleting from temp
             for (Attribute tempAttribute : tempAttributes) {
                 if (!(attributes.contains(tempAttribute))) {
                     temp.dropAttribute(String.valueOf(tempAttribute));
                 }
-//                if(!(tempAttributes.get(i) == attributes.get(i))){
-//                    temp.dropAttribute(String.valueOf(tempAttributes.get(i)));
-//                }
             }
             //getting rows of the resulting temp table to make the resultset
             rows = sm.getRecords(temp);
