@@ -447,10 +447,12 @@ public class DMLParser {
             //the columns have already been removed bc of "from"
             //this removes the rows of the attributes that have to be removed.
             String[] strSplit = selectStmt.split(",");
-            // Now convert string into ArrayList
+
             ArrayList<String> strList = new ArrayList<String>(
                     Arrays.asList(strSplit));
             ArrayList<Attribute> attributes = (ArrayList<Attribute>) strList.clone();
+
+
             ResultSet set = new ResultSet(attributes, rows);
             return set;
 
