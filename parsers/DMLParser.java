@@ -422,10 +422,12 @@ public class DMLParser {
 
         // have the original temp table to see if it should be ordered
         Table orderedTable = temp;
-
+        String orderByAtt;
         // if the query contains an 'orderBy' clause
         if(query.toLowerCase().contains("orderby")){
-            orderedTable = parseOrderByClause(temp, query);
+            orderByAtt = query.split("orderBy")[1].strip();
+            // TODO test if this attribute is in the select statement
+            orderedTable = parseOrderByClause(temp, orderByAtt);
         }
 
         if (query.contains("*")) {
@@ -524,15 +526,40 @@ public class DMLParser {
         return null;
     }
 
-    public static Table parseOrderByClause(Table temp, String query){
-        if (query.toLowerCase().contains("orderby")){
-            // getting the attribute to order by
-            String attOrderBy = query.split("orderBy")[1].strip();
-            
+    public static Table parseOrderByClause(Table table, String query){
+        boolean success = true;
 
-            // make sure that the column name is an attribute with in the select clause
+        // getting the attributes of the table
+        ArrayList<Attribute> attributes = table.getAttributes();
 
+        // for ordered rows for the temp table
+        ArrayList<ArrayList<Object>> rows = new ArrayList<>();
 
+        // temp table
+        Table temp = new Table(table.getTableName(),attributes,attributes.get(0));
+
+        // if there is a '.' in the query meaning a specification of the table
+        // and attribute, split ant set the query to that attribute
+        if(query.contains(".")){
+            String[] arrOfStr = query.split(".", 2);
+
+            if(!(arrOfStr[0].equals(table.getTableName()))){
+                System.err.println("Error locating table for the order by");
+                return null;
+            }
+            query = arrOfStr[1];
+        }
+        // for each attribute in the table go through them and see if one matches the query
+        for(Attribute attribute : attributes){
+            String t_attribute =  attribute.getAttributeName();
+            if(t_attribute.equals(query)){
+
+                break;
+            }
+            else{
+                System.err.println("Error locating attribute in table");
+                return null;
+            }
         }
         return null;
     }
