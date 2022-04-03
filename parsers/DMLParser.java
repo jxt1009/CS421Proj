@@ -540,15 +540,8 @@ public class DMLParser {
 
         // if there is a '.' in the query meaning a specification of the table
         // and attribute, split ant set the query to that attribute
-        if(query.contains(".")){
-            String[] arrOfStr = query.split(".", 2);
+        query = RecordHelper.checkTableColumns(table, query);
 
-            if(!(arrOfStr[0].equals(table.getTableName()))){
-                System.err.println("Error locating table for the order by");
-                return null;
-            }
-            query = arrOfStr[1];
-        }
         // for each attribute in the table go through them and see if one matches the query
         for(Attribute attribute : attributes){
             String t_attribute =  attribute.getAttributeName();
@@ -557,9 +550,10 @@ public class DMLParser {
                 rows = records;
                 int index = table.getColumnIndex(query);
                 for(ArrayList<Object> row : rows){
-                    row.get(index);
-                    // compare that row at that index and another row, based on that order and add to
-                    // the temp table return the temp table.
+                    //if (RecordHelper.compareObjects(row.get(index), ) == true){
+                        // compare that row at that index and another row, based on that order and add to
+                        // the temp table return the temp table.
+                   //}
                 }
                 break;
             }
