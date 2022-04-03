@@ -434,17 +434,21 @@ public class DMLParser {
             // Two options: 1) new table, create/insert all new rows from selected columns,
             // 2) alter current 'temp' table, use drop attribute functions
             System.out.println(selectStmt);
+            //getting columns
             String[] strSplit = selectStmt.split(",");
-
-            // Now convert string into ArrayList
             ArrayList<String> strList = new ArrayList<String>(
                     Arrays.asList(strSplit));
             ArrayList<Attribute> attributes = (ArrayList<Attribute>) strList.clone();
             ArrayList<Attribute> tempAttributes = temp.getAttributes();
-            for(int i=0; i<tempAttributes.size(); i++){
-                if(!(tempAttributes.get(i) == attributes.get(i))){
-                    temp.dropAttribute(String.valueOf(tempAttributes.get(i)));
+
+            //deleting from temp
+            for (Attribute tempAttribute : tempAttributes) {
+                if (!(attributes.contains(tempAttribute))) {
+                    temp.dropAttribute(String.valueOf(tempAttribute));
                 }
+//                if(!(tempAttributes.get(i) == attributes.get(i))){
+//                    temp.dropAttribute(String.valueOf(tempAttributes.get(i)));
+//                }
             }
         }
         if(query.toLowerCase().contains("orderby")) {
