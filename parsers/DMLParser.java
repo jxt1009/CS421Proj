@@ -441,7 +441,11 @@ public class DMLParser {
                     Arrays.asList(strSplit));
             ArrayList<Attribute> attributes = (ArrayList<Attribute>) strList.clone();
             ArrayList<Attribute> tempAttributes = temp.getAttributes();
-            if(!tempAttributes.contains(attributes))
+            for(int i=0; i<tempAttributes.size(); i++){
+                if(!(tempAttributes.get(i) == attributes.get(i))){
+                    temp.dropAttribute(String.valueOf(tempAttributes.get(i)));
+                }
+            }
         }
         if(query.toLowerCase().contains("orderby")) {
             results = parseOrderByClause(query.split("orderby")[1].strip(), results,temp);
