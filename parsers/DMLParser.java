@@ -401,7 +401,6 @@ public class DMLParser {
     }
 
     public static ResultSet parseSelectClause(String query) {
-        //select * from foo;
         query = query.toLowerCase();
         // Parse 'from' clause and get temporary return table;
         Table temp = parseFromClause(query);
@@ -429,27 +428,35 @@ public class DMLParser {
             // TODO test if this attribute is in the select statement
             orderedTable = parseOrderByClause(temp, orderByAtt);
         }
-
+        //select * from foo;
         if (query.contains("*")) {
             ArrayList<Attribute> attributes = (ArrayList<Attribute>) temp.getAttributes().clone();
             ResultSet set = new ResultSet(attributes, rows);
             sm.clearTableData(temp);
             return set;
         }else {
-            String selectStmt = query.split("select")[1].strip().split("from")[0].strip();
-            System.out.println(selectStmt);
             //select name, gpa from student
             //select name, dept_name from student, department where student.dept_id = department.dept_id;
+            //selectStmt = name, dept_name
+            String selectStmt = query.split("select")[1].strip().split("from")[0].strip();
+            System.out.println(selectStmt);
             //TODO select the columns
             // Two options: 1) new table, create/insert all new rows from selected columns,
             // 2) alter current 'temp' table, use drop attribute functions
             //the dropping thing would be a better choice since it will be a smaller operation
             //the columns have already been removed bc of "from"
             //this removes the rows of the attributes that have to be removed.
+            String[] strSplit = selectStmt.split(",");
+            // Now convert string into ArrayList
+            ArrayList<String> strList = new ArrayList<String>(
+                    Arrays.asList(strSplit));
+            ArrayList<Attribute> attributes = (ArrayList<Attribute>) strList.clone();
+            ResultSet set = new ResultSet(attributes, rows);
+            return set;
 
 
         }
-        return null;
+        //return null;
     }
 
     public static Table parseFromClause(String query) {
