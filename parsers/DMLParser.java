@@ -433,8 +433,15 @@ public class DMLParser {
             //TODO select the columns
             // Two options: 1) new table, create/insert all new rows from selected columns,
             // 2) alter current 'temp' table, use drop attribute functions
+            System.out.println(selectStmt);
+            String[] strSplit = selectStmt.split(",");
 
-
+            // Now convert string into ArrayList
+            ArrayList<String> strList = new ArrayList<String>(
+                    Arrays.asList(strSplit));
+            ArrayList<Attribute> attributes = (ArrayList<Attribute>) strList.clone();
+            ArrayList<Attribute> tempAttributes = temp.getAttributes();
+            if(!tempAttributes.contains(attributes))
         }
         if(query.toLowerCase().contains("orderby")) {
             results = parseOrderByClause(query.split("orderby")[1].strip(), results,temp);
