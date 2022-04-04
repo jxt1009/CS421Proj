@@ -169,7 +169,7 @@ public class DDLParser {
         ArrayList<Attribute> nonNullAttributes = new ArrayList<>();
 
         // Grab details within parenthesis, ex: (attr1 Integer, attr2 double);
-        parendParams = parendParams.substring(0, parendParams.length() - 2);
+        parendParams = parendParams.substring(0, parendParams.length() - 1);
 
         // Split param string on comma and iterate through each attribute line
         for (String params : parendParams.split(",")) {

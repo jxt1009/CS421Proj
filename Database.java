@@ -128,7 +128,9 @@ public class Database {
             }
             rowIndex+=1;
         }
-        addLines(result, maxLengths);
+        if(rowIndex>1) {
+            addLines(result, maxLengths);
+        }
         System.out.println(result);
     }
 

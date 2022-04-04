@@ -523,10 +523,11 @@ public class DMLParser {
                     System.err.println("DB does not contain table: " + tableName);
                 }
             }
-            if(rows.isEmpty()){
-                return null;
-            }
             Table temp = new Table("~",attributes,attributes.get(0));
+            if(rows.isEmpty()){
+                System.out.println("Table is empty");
+                return temp;
+            }
             int rowIndex = 0;
 
             for(ArrayList<Object> row : rows){
