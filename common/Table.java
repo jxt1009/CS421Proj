@@ -14,7 +14,6 @@ public class Table implements ITable {
     private final ArrayList<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
     private ArrayList<Attribute> nonNullAttributes = new ArrayList<>();
     private Attribute primaryKey;
-    private final int primaryKeyIndex;
     private ForeignKey foreignKey;
     private String index;
 
@@ -24,12 +23,11 @@ public class Table implements ITable {
         this.tableName = tableName;
         this.attributes = attributes;
         this.primaryKey = primaryKey;
-        primaryKeyIndex = attributes.indexOf(primaryKey);
         nonNullAttributes.add(primaryKey);
     }
 
     public int getPrimaryKeyIndex(){
-        return primaryKeyIndex;
+        return attributes.indexOf(primaryKey);
     }
 
     @Override
@@ -94,7 +92,7 @@ public class Table implements ITable {
         // If found, drop it and return true. If no match, fall back on returning false
         Attribute removalAttribute = null;
         for (Attribute attr : attributes) {
-            if (attr.getAttributeName().equals(name)) {
+            if (attr.getAttributeName().equalsIgnoreCase(name)) {
                 removalAttribute = attr;
                 attributes.remove(attr);
                 nonNullAttributes.remove(attr);

@@ -77,14 +77,14 @@ public class StorageManager extends AStorageManager{
     @Override
     public boolean dropAttributeValue(ITable table, int attrIndex) {
         ArrayList attributes = table.getAttributes();
+        boolean success = true;
         if(attributes.size() != 0) {
             for (ArrayList<Object> record : pageBuffer.getAllRecords(table)) {
                 ArrayList<Object> originalRecord = (ArrayList<Object>) record.clone();
                 record.remove(attrIndex);
-                updateRecord(table, originalRecord, record);
+                success = success && updateRecord(table, originalRecord, record);
             }
-            attributes.remove(attrIndex);
         }
-        return false;
+        return success;
     }
 }

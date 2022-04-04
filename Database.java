@@ -7,6 +7,7 @@ import storagemanager.AStorageManager;
 import storagemanager.StorageManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 /*
@@ -91,34 +92,55 @@ public class Database {
         return catalog.saveToDisk();
     }
 
+    private static String centerString(int width, String s) {
+        return String.format("|%-" + width  + "s", String.format("%" + (s.length() + (width - s.length()) / 2) + "s", s));
+    }
     public static void printTable(ResultSet tableData){
         if(tableData == null){
             return;
         }
-        ArrayList<Attribute> column_Names = tableData.attrs();
-        ArrayList<ArrayList<Object>> data = tableData.results();
-        StringBuilder formattingString = new StringBuilder();
-        int lastRow = data.size()-1;
-        for(int col = 0; col < column_Names.size(); col++) {
-            // Another option would be to get a random index here or to actually loop through and find the largest
-            // length item in the column (would take even more time)
-            int length = (data.get(lastRow).get(col).toString().length() * 2);
-            if (length < (column_Names.get(col).toString().length())) {
-                length = column_Names.get(col).toString().length();
+        ArrayList<ArrayList<Object>> rows = tableData.results();
+        ArrayList<Object> attrs = new ArrayList<>();
+        for(Attribute attr: tableData.attrs()){
+            attrs.add(attr.attributeName());
+        }
+        rows.add(0,attrs);
+        int[] maxLengths = new int[rows.get(0).size()];
+        for (ArrayList<Object> row : rows)
+        {
+            for (int i = 0; i < row.size(); i++)
+            {
+                maxLengths[i] = Math.max(maxLengths[i], row.get(i).toString().length()+2);
             }
-            formattingString.append(("%-")).append(length).append("s ");
         }
-        formattingString.append("%n");
-        String format = formattingString.toString();
-        System.out.format(format, column_Names.toArray(new Object[0]));
+
         StringBuilder result = new StringBuilder();
-        for (ArrayList<Object> row: data) {
-            result.append(String.format(format, row.toArray(new Object[0]))).append("\n");
+        addLines(result, maxLengths);
+        int rowIndex = 0;
+        for (ArrayList<Object> row : rows)
+        {
+            for(int i = 0; i < maxLengths.length;i++) {
+                result.append(centerString(maxLengths[i], row.get(i).toString()));
+            }
+            result.append("|\n");
+            if(rowIndex == 0){
+                addLines(result, maxLengths);
+            }
+            rowIndex+=1;
         }
+        addLines(result, maxLengths);
         System.out.println(result);
-//        System.out.println(tableData.attrs());
-//        for(ArrayList<Object> result:tableData.results()) {
-//            System.out.println(result);
-//        }
+    }
+
+    private static void addLines(StringBuilder result, int[] maxLengths){
+        result.append("|");
+        for(int i = 0; i < maxLengths.length;i++){
+            int maxLength = maxLengths[i];
+            if(i == 0 || i == maxLengths.length-1){
+                maxLength -= 1;
+            }
+            result.append(String.join("", Collections.nCopies(maxLength+1, "-")));
+        }
+        result.append("|\n");
     }
 }

@@ -420,32 +420,46 @@ public class DMLParser {
         }
         rows = (ArrayList<ArrayList<Object>>) rows.clone();
         ResultSet results;
-        if (query.contains("*")) {
-            ArrayList<Attribute> attributes = (ArrayList<Attribute>) temp.getAttributes().clone();
+        ArrayList<Attribute> attributes = (ArrayList<Attribute>) temp.getAttributes().clone();
 
+        if (query.contains("*")) {
             results = new ResultSet(attributes, rows);
         }else {
             String selectStmt = query.split("select")[1].strip().split("from")[0].strip();
-            System.out.println(selectStmt);
             //TODO select the columns
             // Two options: 1) new table, create/insert all new rows from selected columns,
             // 2) alter current 'temp' table, use drop attribute functions
-            System.out.println(selectStmt);
             //getting columns
             String[] strSplit = selectStmt.split(",");
             ArrayList<String> strList = new ArrayList<String>(
                     Arrays.asList(strSplit));
-            ArrayList<Attribute> attributes = (ArrayList<Attribute>) strList.clone();
-            ArrayList<Attribute> tempAttributes = temp.getAttributes();
-            //deleting from temp
-            for (Attribute tempAttribute : tempAttributes) {
-                if (!(attributes.contains(tempAttribute))) {
-                    temp.dropAttribute(String.valueOf(tempAttribute));
+            ArrayList<Attribute> selectAttr = new ArrayList<>();
+            selectAttr.add(new Attribute("id","integer"));
+            for(String attr: strList){
+                String colName = RecordHelper.checkTableColumns(temp,attr.strip());
+                if(colName.isEmpty()){
+                    System.err.println("Could not select column");
+                    return null;
+                }
+                selectAttr.add(temp.getAttrByName(colName));
+            }
+            ArrayList<Integer> selectIndexes = new ArrayList<>();
+            for(Attribute select : selectAttr){
+                String selectColName = RecordHelper.checkTableColumns(temp,select.getAttributeName());
+                if(temp.containsColumn(selectColName)){
+                    selectIndexes.add(temp.getColumnIndex(selectColName));
                 }
             }
-            //getting rows of the resulting temp table to make the resultset
-            rows = sm.getRecords(temp);
-            results = new ResultSet(attributes,rows);
+
+            ArrayList<ArrayList<Object>> selectedRows = new ArrayList<>();
+            for(ArrayList<Object> row : rows) {
+                ArrayList<Object> newRow = new ArrayList<>();
+                for (int i : selectIndexes) {
+                    newRow.add(row.get(i));
+                }
+                selectedRows.add(newRow);
+            }
+            results = new ResultSet(selectAttr,selectedRows);
         }
         if(query.toLowerCase().contains("orderby")) {
             results = parseOrderByClause(query.split("orderby")[1].strip(), results,temp);
