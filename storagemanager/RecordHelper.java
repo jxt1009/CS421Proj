@@ -2,6 +2,7 @@ package storagemanager;
 
 import common.Attribute;
 import common.Table;
+import parsers.ResultSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -209,9 +210,8 @@ public class RecordHelper {
      * @param columnName Column name, could be <column_name> or <tablename>.<column_name>
      * @return
      */
-    public static String checkTableColumns(Table table, String columnName){
-        // Get list of attributes from table
-        List<Attribute> attributes = table.getAttributes();
+    public static String checkTableColumns(List<Attribute> attributes, String columnName){
+
         // assume we haven't found a matching column yet
         String selectedColumn = "";
         // Only check if user does not use tablename.columnname syntax

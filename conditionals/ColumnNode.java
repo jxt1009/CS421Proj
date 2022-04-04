@@ -17,7 +17,7 @@ public class ColumnNode extends Node{
 
     public ColumnNode(String columnName, Table table){
         this.table = table;
-        columnName = RecordHelper.checkTableColumns(table,columnName);
+        columnName = RecordHelper.checkTableColumns(table.getAttributes(),columnName);
         columnIndex = table.getColumnIndex(columnName);
     }
 

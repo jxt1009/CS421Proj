@@ -405,17 +405,17 @@ public class DMLParser {
         query = query.toLowerCase();
         // Parse 'from' clause and get temporary return table;
         Table temp = parseFromClause(query);
-        if(temp == null){
+        if (temp == null) {
             System.err.println("Error parsing 'from' clause of query");
             return null;
         }
         ArrayList<ArrayList<Object>> rows;
-        if(query.toLowerCase().contains("where")){
-            rows = parseWhereClause(temp,query.split("where")[1].strip());
-        }else{
+        if (query.toLowerCase().contains("where")) {
+            rows = parseWhereClause(temp, query.split("where")[1].strip());
+        } else {
             rows = sm.getRecords(temp);
         }
-        if(rows == null){
+        if (rows == null) {
             System.err.println("Where clause could not be parsed");
         }
         rows = (ArrayList<ArrayList<Object>>) rows.clone();
@@ -424,47 +424,45 @@ public class DMLParser {
 
         if (query.contains("*")) {
             results = new ResultSet(attributes, rows);
-        }else {
+        } else {
             String selectStmt = query.split("select")[1].strip().split("from")[0].strip();
-            //TODO select the columns
-            // Two options: 1) new table, create/insert all new rows from selected columns,
-            // 2) alter current 'temp' table, use drop attribute functions
-            //getting columns
             String[] strSplit = selectStmt.split(",");
             ArrayList<String> strList = new ArrayList<String>(
                     Arrays.asList(strSplit));
             ArrayList<Attribute> selectAttr = new ArrayList<>();
-            selectAttr.add(new Attribute("id","integer"));
-            for(String attr: strList){
-                String colName = RecordHelper.checkTableColumns(temp,attr.strip());
-                if(colName.isEmpty()){
+            selectAttr.add(new Attribute("id", "integer"));
+            for (String attr : strList) {
+                String colName = RecordHelper.checkTableColumns(temp.getAttributes(), attr.strip());
+                if (colName.isEmpty()) {
                     System.err.println("Could not select column");
                     return null;
                 }
                 selectAttr.add(temp.getAttrByName(colName));
             }
             ArrayList<Integer> selectIndexes = new ArrayList<>();
-            for(Attribute select : selectAttr){
-                String selectColName = RecordHelper.checkTableColumns(temp,select.getAttributeName());
-                if(temp.containsColumn(selectColName)){
+            for (Attribute select : selectAttr) {
+                String selectColName = RecordHelper.checkTableColumns(temp.getAttributes(), select.getAttributeName());
+                if (temp.containsColumn(selectColName)) {
                     selectIndexes.add(temp.getColumnIndex(selectColName));
                 }
             }
 
             ArrayList<ArrayList<Object>> selectedRows = new ArrayList<>();
-            for(ArrayList<Object> row : rows) {
+            for (ArrayList<Object> row : rows) {
                 ArrayList<Object> newRow = new ArrayList<>();
                 for (int i : selectIndexes) {
                     newRow.add(row.get(i));
                 }
                 selectedRows.add(newRow);
             }
-            results = new ResultSet(selectAttr,selectedRows);
+            results = new ResultSet(selectAttr, selectedRows);
         }
-        if(query.toLowerCase().contains("orderby")) {
-            results = parseOrderByClause(query.split("orderby")[1].strip(), results,temp);
-        }else{
-            results = parseOrderByClause("id", results,temp);
+        if (!results.results().isEmpty()){
+            if (query.toLowerCase().contains("orderby")) {
+                results = parseOrderByClause(query.split("orderby")[1].strip(), results);
+            } else {
+                results = parseOrderByClause("id", results);
+            }
         }
         sm.clearTableData(temp);
         return results;
@@ -551,9 +549,14 @@ public class DMLParser {
         return null;
     }
 
-    public static ResultSet parseOrderByClause(String query, ResultSet set,Table table){
-        String columnName = RecordHelper.checkTableColumns(table,query);
-        int columnIndex = table.getColumnIndex(columnName);
+    public static ResultSet parseOrderByClause(String query, ResultSet set){
+        String columnName = RecordHelper.checkTableColumns(set.attrs(),query);
+        int columnIndex = -1;
+        for(Attribute attr:set.attrs()){
+            if(attr.getAttributeName().equalsIgnoreCase(columnName)){
+                columnIndex = set.attrs().indexOf(attr);
+            }
+        }
         if(columnIndex != -1) {
             ArrayList<ArrayList<Object>> tableRecords = set.results();
             ArrayList<ArrayList<Object>> finalList = new ArrayList<>();
