@@ -525,10 +525,12 @@ public class DMLParser {
                     System.err.println("DB does not contain table: " + tableName);
                 }
             }
-            // TODO change to return table, but what about primary key attributre?
-            // Insert values into new table, and pass table to 'where' clause
+            if(rows.isEmpty()){
+                return null;
+            }
             Table temp = new Table("~",attributes,attributes.get(0));
             int rowIndex = 0;
+
             for(ArrayList<Object> row : rows){
                 row = (ArrayList<Object>) row.clone();
                 row.add(0,rowIndex);
