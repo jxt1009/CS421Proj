@@ -1,4 +1,5 @@
 import catalog.ACatalog;
+import common.Attribute;
 import parsers.DDLParser;
 import parsers.DMLParser;
 import parsers.ResultSet;
@@ -6,7 +7,6 @@ import storagemanager.AStorageManager;
 import storagemanager.StorageManager;
 
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Scanner;
 
 /*
@@ -95,9 +95,30 @@ public class Database {
         if(tableData == null){
             return;
         }
-        System.out.println(tableData.attrs());
-        for(ArrayList<Object> result:tableData.results()) {
-            System.out.println(result);
+        ArrayList<Attribute> column_Names = tableData.attrs();
+        ArrayList<ArrayList<Object>> data = tableData.results();
+        StringBuilder formattingString = new StringBuilder();
+        int lastRow = data.size()-1;
+        for(int col = 0; col < column_Names.size(); col++) {
+            // Another option would be to get a random index here or to actually loop through and find the largest
+            // length item in the column (would take even more time)
+            int length = (data.get(lastRow).get(col).toString().length() * 2);
+            if (length < (column_Names.get(col).toString().length())) {
+                length = column_Names.get(col).toString().length();
+            }
+            formattingString.append(("%-")).append(length).append("s ");
         }
+        formattingString.append("%n");
+        String format = formattingString.toString();
+        System.out.format(format, column_Names.toArray(new Object[0]));
+        StringBuilder result = new StringBuilder();
+        for (ArrayList<Object> row: data) {
+            result.append(String.format(format, row.toArray(new Object[0]))).append("\n");
+        }
+        System.out.println(result);
+//        System.out.println(tableData.attrs());
+//        for(ArrayList<Object> result:tableData.results()) {
+//            System.out.println(result);
+//        }
     }
 }
