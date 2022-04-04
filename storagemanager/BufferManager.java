@@ -227,6 +227,7 @@ public class BufferManager {
             updateBuffer();
             return p.addRecord(table, record, p.getRecords().size());
         } else {
+            System.err.println("error");
             return false;
         }
     }

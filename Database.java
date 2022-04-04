@@ -133,7 +133,7 @@ public class Database {
     }
 
     private static void addLines(StringBuilder result, int[] maxLengths){
-        result.append("|");
+        result.append("|-");
         for(int i = 0; i < maxLengths.length;i++){
             int maxLength = maxLengths[i];
             if(i == 0 || i == maxLengths.length-1){
