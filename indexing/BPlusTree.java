@@ -340,6 +340,7 @@ public class BPlusTree implements IBPlusTree{
         tree.insertRecordPointer(new RecordPointer(0,1), 7);
         tree.insertRecordPointer(new RecordPointer(0,1), 8);
         tree.insertRecordPointer(new RecordPointer(0,1), 9);
+        tree.insertRecordPointer(new RecordPointer(0,1), 10);
         tree.insertRecordPointer(new RecordPointer(0,1), 0);
         tree.insertRecordPointer(new RecordPointer(0,1), 1);
         tree.insertRecordPointer(new RecordPointer(0,1), 2);
@@ -347,9 +348,9 @@ public class BPlusTree implements IBPlusTree{
         tree.insertRecordPointer(new RecordPointer(0,1), 4);
         tree.insertRecordPointer(new RecordPointer(0,1), 5);
         printTree(tree);
-        System.out.println(tree.removeRecordPointer(new RecordPointer(0,1), 5));
-        System.out.println(tree.removeRecordPointer(new RecordPointer(0,1), 6));
-        System.out.println(tree.removeRecordPointer(new RecordPointer(0,1), 5));
+        tree.removeRecordPointer(new RecordPointer(0,1), 5);
+        tree.removeRecordPointer(new RecordPointer(0,1), 6);
+        tree.removeRecordPointer(new RecordPointer(0,1), 7);
         printTree(tree);
     }
 }
