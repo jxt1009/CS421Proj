@@ -280,9 +280,8 @@ public class DDLParser {
         String index = stmt.split(" ")[2];
         String indexString = stmt.split("on")[1].strip();
         String tableName = indexString.split("\\(")[0];
-        String columnName = indexString.split("\\(")[1].split("\\)")[0];
-        // TODO to make the index call the index making fucntion from catalog.
-        return true;
+        String attrName = indexString.split("\\(")[1].split("\\)")[0];
+        return catalog.addIndex(tableName, index, attrName);
     }
 
 }
