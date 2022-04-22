@@ -78,9 +78,9 @@ public class BPlusTree implements IBPlusTree{
                 }
                 if(!hasKey){
                     Object[] keys = root.getKeys();
-                    int insertIndex = root.numKeys - 1;
                     root.numKeys++;
-                    while(insertIndex > 0 && RecordHelper.lessThan(keys[insertIndex-1],searchKey)){
+                    int insertIndex = root.numKeys - 1;
+                    while(insertIndex > 0 && RecordHelper.greaterThan(keys[insertIndex-1],searchKey)){
                         keys[insertIndex] = keys[insertIndex-1];
                         insertIndex-=1;
                     }
