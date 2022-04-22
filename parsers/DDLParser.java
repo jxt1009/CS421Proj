@@ -67,8 +67,14 @@ public class DDLParser {
         else if (stmt.toLowerCase().startsWith("alter table")){
             return parseAlterClause(stmt);
         }
+        //to do create index statements
+        else if(stmt.toLowerCase().startsWith("create index")){
+            return parseIndexClause(stmt);
+        }
         System.err.println("DDL Statement not properly structured, could not parse");
         return false;
+
+
     }
 
 
@@ -266,6 +272,15 @@ public class DDLParser {
         }
         System.out.println("Table creation: " + success);
         return success;
+    }
+
+    private static boolean parseIndexClause(String stmt){
+        //"create index myFooIndex on foo( bar );";
+        String index = stmt.split(" ")[2];
+        String indexString = stmt.split("on")[1].strip();
+        String tableName = indexString.split("")[2];    // TODO - FIX THIS  currently returning foo( bar ) b/c no space between foo and (
+
+        return true;
     }
 
 }
