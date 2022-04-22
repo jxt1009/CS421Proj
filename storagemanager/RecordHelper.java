@@ -106,14 +106,6 @@ public class RecordHelper {
     }
 
     public static boolean equals(Object o1, Object o2) {
-        if(o1 == null && o2 != null){
-            return false;
-        }else if(o1 != null && o2 == null){
-            return false;
-        }
-        if(o1 == null || o2 == null){
-            return false;
-        }
         if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 == (Integer) o2;
         } else if(o1 instanceof Integer && o2 instanceof Double){

@@ -20,6 +20,8 @@ public class BPTreeNode {
     private int pageIndex;
 
     public BPTreeNode(int pageIndex, int keySize){
+        // TODO need to write out to hardware and update each time anything is changed.
+        // Function will need to be outside of constructor and called for every set operation
         this.pageIndex = pageIndex;
         keys = new Object[keySize+1];
         children = new BPTreeNode[keySize+1];

@@ -79,10 +79,10 @@ public class BPlusTree implements IBPlusTree{
                 if(!hasKey){
                     Object[] keys = root.getKeys();
                     root.numKeys++;
-                    int insertIndex = root.numKeys - 1;
+                    int insertIndex = root.numKeys-1;
                     while(insertIndex > 0 && RecordHelper.greaterThan(keys[insertIndex-1],searchKey)){
                         keys[insertIndex] = keys[insertIndex-1];
-                        insertIndex-=1;
+                        insertIndex--;
                     }
                     keys[insertIndex] = searchKey;
                     root.insertRecord(rp, searchKey);
@@ -116,6 +116,7 @@ public class BPlusTree implements IBPlusTree{
     }
 
     private BPTreeNode split(BPTreeNode tree) {
+        // TODO add something for splitting files on hardware
         BPTreeNode rightNode = new BPTreeNode(index++,max_keys);
         Object rising = tree.getKeys()[split_index];
         int parentIndex;
@@ -146,7 +147,7 @@ public class BPlusTree implements IBPlusTree{
             rightSplit = split_index + 1;
         }
         rightNode.numKeys = tree.numKeys - rightSplit;
-        for(int i = rightSplit; i < tree.numKeys; i ++){
+        for(int i = rightSplit; i < tree.numKeys + 1; i ++){
             rightNode.getChildren()[i - rightSplit] = tree.getChildren()[i];
             if(tree.getChildren()[i] != null){
                 rightNode.setLeaf(false);
@@ -173,12 +174,37 @@ public class BPlusTree implements IBPlusTree{
         }
     }
 
-
-    // TODO will need a page splitting method
-
     @Override
     public boolean removeRecordPointer(RecordPointer rp, Object searchKey) {
+        return deleteElement(this.root,searchKey);
+    }
+
+    private boolean deleteElement(BPTreeNode root, Object searchKey) {
+        if(root != null){
+            int i;
+            for(i = 0; i < root.numKeys && RecordHelper.lessThan(root.keys[i],searchKey); i++);
+            if(i == root.numKeys){
+                if(!root.isLeaf()){
+                    return deleteElement(root.getChildren()[root.numKeys],searchKey);
+                }
+            }else if(!root.isLeaf() && RecordHelper.equals(root.keys[i], searchKey)){
+                return deleteElement(root.getChildren()[i+1],searchKey);
+            }else if(!root.isLeaf()){
+                return deleteElement(root.getChildren()[i],searchKey);
+            }else if(root.isLeaf() && RecordHelper.equals(root.keys[i], searchKey)){
+                for(int j = i; j < root.numKeys-1;j++){
+                    root.keys[j] = root.keys[j+1];
+                }
+                root.numKeys--;
+
+            }
+            return repairAfterDelete(root);
+        }
         return false;
+    }
+
+    private boolean repairAfterDelete(BPTreeNode root) {
+        return true;
     }
 
     @Override
@@ -193,16 +219,19 @@ public class BPlusTree implements IBPlusTree{
 
     public static void main(String[] args){
         BPlusTree tree = new BPlusTree("aa",5);
-        tree.insertRecordPointer(new RecordPointer(0,1), "4");
-        tree.insertRecordPointer(new RecordPointer(0,1), "5");
-        tree.insertRecordPointer(new RecordPointer(0,1), "6");
-        tree.insertRecordPointer(new RecordPointer(0,1), "7");
-        tree.insertRecordPointer(new RecordPointer(0,1), "8");
-        tree.insertRecordPointer(new RecordPointer(0,1), "9");
-        tree.insertRecordPointer(new RecordPointer(0,1), "10");
-        tree.insertRecordPointer(new RecordPointer(0,1), "11");
-        tree.insertRecordPointer(new RecordPointer(0,1), "12");
-        tree.insertRecordPointer(new RecordPointer(0,1), "13");
+        tree.insertRecordPointer(new RecordPointer(0,1), 5);
+        tree.insertRecordPointer(new RecordPointer(0,1), 6);
+        tree.insertRecordPointer(new RecordPointer(0,1), 7);
+        tree.insertRecordPointer(new RecordPointer(0,1), 8);
+        tree.insertRecordPointer(new RecordPointer(0,1), 9);
+        tree.insertRecordPointer(new RecordPointer(0,1), 0);
+        tree.insertRecordPointer(new RecordPointer(0,1), 1);
+        tree.insertRecordPointer(new RecordPointer(0,1), 2);
+        tree.insertRecordPointer(new RecordPointer(0,1), 3);
+        tree.insertRecordPointer(new RecordPointer(0,1), 4);
+        tree.insertRecordPointer(new RecordPointer(0,1), 5);
+        printTree(tree);
+        System.out.println(tree.removeRecordPointer(new RecordPointer(0,1), 5));
         printTree(tree);
     }
 }
