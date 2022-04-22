@@ -280,7 +280,8 @@ public class DDLParser {
         String index = stmt.split(" ")[2];
         String indexString = stmt.split("on")[1].strip();
         String tableName = indexString.split("\\(")[0];
-        String columnName = indexString.split("\\(")[1].split("\\)")[0];    // TODO - FIX THIS  currently returning foo( bar ) b/c no space between foo and (
+        String columnName = indexString.split("\\(")[1].split("\\)")[0];
+        // TODO to make the index call the index making fucntion from catalog.
         return true;
     }
 

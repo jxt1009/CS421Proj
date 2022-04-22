@@ -295,6 +295,8 @@ public class DMLParser {
 
 
     private static ArrayList<ArrayList<Object>> parseWhereClause(Table table, String stmt) {
+        // TODO add in the implementation of querying with index
+        //example: select * from foo where bar = 5;
         // This function is a bit convoluted, but it works
         // Convert statement into a postfix string by order of precedence
         // Then convert back to a stack and pass to parseNode
