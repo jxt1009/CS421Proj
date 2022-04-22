@@ -3,6 +3,8 @@ package catalog;
 import common.Attribute;
 import common.ITable;
 import common.Table;
+import indexing.BPTreeNode;
+import indexing.BPlusTree;
 import storagemanager.FileManager;
 import storagemanager.StorageManager;
 
@@ -18,6 +20,7 @@ public class Catalog extends ACatalog {
     private int pageBufferSize;
     private File catalogFile;
     HashMap<String,Table> tables = new HashMap<String,Table>();
+    HashMap<String, BPlusTree> indexes = new HashMap<>();
 
     public Catalog(String location, int pageSize, int pageBufferSize) {
         this.location = location;
@@ -124,7 +127,19 @@ public class Catalog extends ACatalog {
      */
     @Override
     public boolean addIndex(String tableName, String indexName, String attrName) {
-        return false;
+        if(containsTable(tableName)){
+            Table table = (Table) getTable(tableName);
+            Attribute attr = table.getAttrByName(attrName);
+            if(attr == null){
+                System.err.println("Error finding attribute to index: " + indexName);
+                return false;
+            }
+            indexes.put(indexName, new BPlusTree(attrName,pageSize));
+            return table.addIndex(attr.getAttributeName());
+        }
+        else {
+            return false;
+        }
     }
 
     /**

@@ -10,7 +10,6 @@ import java.util.Hashtable;
 
 public class BPTreeNode {
 
-    private HashMap<Object, Object> records = new HashMap<>();
     public int numKeys = 1;
     public Object[] keys;
     private BPTreeNode[] children;
@@ -31,15 +30,8 @@ public class BPTreeNode {
         return isLeaf;
     }
 
-    public HashMap<Object, Object> getRecords() {
-        return records;
-    }
     public int getPageIndex(){
         return pageIndex;
-    }
-
-    public void insertRecord(RecordPointer rp, Object searchKey) {
-        this.records.put(searchKey,rp);
     }
 
     public Object[] getKeys() {

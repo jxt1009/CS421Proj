@@ -4,15 +4,15 @@ import common.RecordPointer;
 import storagemanager.RecordHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class BPlusTree implements IBPlusTree{
 
     private int pageSize;
     private String columnName;
-    // Hold all pages created by this specific tree
-    private ArrayList<Integer> treePages = new ArrayList<Integer>();
-    // TODO Temp implementation without tree, will need to be changed
     private ArrayList<BPTreeNode> tree = new ArrayList<BPTreeNode>();
+    private HashMap<Object, RecordPointer> records = new HashMap<>();
     private int max_keys = 6;
     private int min_keys = 1;
     private int split_index = 1;
@@ -30,7 +30,7 @@ public class BPlusTree implements IBPlusTree{
         //TODO load in page from disk if only a column name is specified
     }
 
-    public static void printTree(BPlusTree tree){
+    public void printTree(BPlusTree tree){
         if(tree.getRoot() != null){
             BPTreeNode tmp = tree.getRoot();
             while(!tmp.isLeaf()){
@@ -60,7 +60,7 @@ public class BPlusTree implements IBPlusTree{
             this.index++;
             root.getKeys()[0] = searchKey;
             root.numKeys++;
-            root.insertRecord(rp, searchKey);
+            records.put(searchKey,rp);
             return true;
         }else {
             return insert(root, rp, searchKey);
@@ -85,7 +85,7 @@ public class BPlusTree implements IBPlusTree{
                         insertIndex--;
                     }
                     keys[insertIndex] = searchKey;
-                    root.insertRecord(rp, searchKey);
+                    records.put(searchKey,rp);
                 }
                 insertRepair(root);
             }else{
@@ -325,6 +325,37 @@ public class BPlusTree implements IBPlusTree{
 
     @Override
     public ArrayList<RecordPointer> search(Object searchKey) {
+        return searchForKey(this.root,searchKey);
+    }
+
+    private ArrayList<RecordPointer> searchForKey(BPTreeNode tree, Object searchKey){
+        ArrayList<RecordPointer> pointers = new ArrayList<>();
+        if(tree != null){
+            int i;
+            for(i = 0; (i < tree.numKeys) && RecordHelper.lessThan(tree.keys[i],searchKey);i++);
+            if(i == tree.numKeys){
+                if(!tree.isLeaf()){
+                    return searchForKey(tree.getChildren()[tree.numKeys], searchKey);
+                }else{
+                    System.err.println("hm");
+                    return null;
+                }
+            }else if(RecordHelper.greaterThan(tree.keys[i],searchKey)){
+                if(!tree.isLeaf()){
+                    return searchForKey(tree.getChildren()[i],searchKey);
+                }else{
+                    System.err.println("hm2");
+                    return null;
+                }
+            }else{
+                if(!tree.isLeaf()){
+                    return searchForKey(tree.getChildren()[i+1],searchKey);
+                }else{
+                    pointers.add(records.get(searchKey));
+                    return pointers;
+                }
+            }
+        }
         return null;
     }
 
@@ -336,21 +367,24 @@ public class BPlusTree implements IBPlusTree{
     public static void main(String[] args){
         BPlusTree tree = new BPlusTree("aa",5);
         tree.insertRecordPointer(new RecordPointer(0,1), 5);
-        tree.insertRecordPointer(new RecordPointer(0,1), 6);
-        tree.insertRecordPointer(new RecordPointer(0,1), 7);
-        tree.insertRecordPointer(new RecordPointer(0,1), 8);
-        tree.insertRecordPointer(new RecordPointer(0,1), 9);
-        tree.insertRecordPointer(new RecordPointer(0,1), 10);
-        tree.insertRecordPointer(new RecordPointer(0,1), 0);
-        tree.insertRecordPointer(new RecordPointer(0,1), 1);
-        tree.insertRecordPointer(new RecordPointer(0,1), 2);
-        tree.insertRecordPointer(new RecordPointer(0,1), 3);
-        tree.insertRecordPointer(new RecordPointer(0,1), 4);
-        tree.insertRecordPointer(new RecordPointer(0,1), 5);
-        printTree(tree);
-        tree.removeRecordPointer(new RecordPointer(0,1), 5);
-        tree.removeRecordPointer(new RecordPointer(0,1), 6);
-        tree.removeRecordPointer(new RecordPointer(0,1), 7);
-        printTree(tree);
+        tree.insertRecordPointer(new RecordPointer(0,2), 6);
+        tree.insertRecordPointer(new RecordPointer(0,3), 7);
+        tree.insertRecordPointer(new RecordPointer(0,4), 8);
+        tree.insertRecordPointer(new RecordPointer(0,5), 9);
+        tree.insertRecordPointer(new RecordPointer(0,6), 10);
+        tree.insertRecordPointer(new RecordPointer(0,7), 0);
+        tree.insertRecordPointer(new RecordPointer(0,8), 1);
+        tree.insertRecordPointer(new RecordPointer(0,9), 2);
+        tree.insertRecordPointer(new RecordPointer(0,10), 3);
+        tree.insertRecordPointer(new RecordPointer(0,11), 4);
+        tree.insertRecordPointer(new RecordPointer(0,12), 5);
+        tree.printTree(tree);
+
+        System.out.println(tree.search(1));
+
+        tree.removeRecordPointer(new RecordPointer(0,13), 5);
+        tree.removeRecordPointer(new RecordPointer(0,14), 6);
+        tree.removeRecordPointer(new RecordPointer(0,15), 7);
+        tree.printTree(tree);
     }
 }
