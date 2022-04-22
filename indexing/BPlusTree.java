@@ -4,7 +4,6 @@ import common.RecordPointer;
 import storagemanager.RecordHelper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class BPlusTree implements IBPlusTree{
 
@@ -14,7 +13,7 @@ public class BPlusTree implements IBPlusTree{
     private ArrayList<Integer> treePages = new ArrayList<Integer>();
     // TODO Temp implementation without tree, will need to be changed
     private ArrayList<BPTreeNode> tree = new ArrayList<BPTreeNode>();
-    private int max_keys = 4;
+    private int max_keys = 6;
     private int min_keys = 1;
     private int split_index = 1;
 
@@ -45,6 +44,7 @@ public class BPlusTree implements IBPlusTree{
             }
         }
     }
+    // TODO need a function to call after each action to write page to disk
 
     private BPTreeNode getRoot() {
         return root;
@@ -203,7 +203,123 @@ public class BPlusTree implements IBPlusTree{
         return false;
     }
 
-    private boolean repairAfterDelete(BPTreeNode root) {
+    public BPTreeNode mergeRight(BPTreeNode tree){
+        BPTreeNode parentNode = tree.getParent();
+        int parentIndex = 0;
+        for(parentIndex= 0; parentNode.getChildren()[parentIndex] != tree; parentIndex++);
+        BPTreeNode rightSib = parentNode.getChildren()[parentIndex + 1];
+        int fromParentIndex = tree.numKeys;
+        for(int i = 0; i < rightSib.numKeys;i++){
+            int insertIndex = tree.numKeys + 1 + i;
+            if(tree.isLeaf()){
+                insertIndex -= 1;
+            }
+            tree.keys[insertIndex] = rightSib.keys[i];
+        }
+        if(!tree.isLeaf()){
+                for(int i = 0; i <= rightSib.numKeys; i++){
+                    tree.getChildren()[tree.numKeys+1+i] = rightSib.getChildren()[i];
+                    tree.getChildren()[tree.numKeys+1+i].setParent(tree);
+                }
+                tree.numKeys = tree.numKeys + rightSib.numKeys + 1;
+            }else{
+                tree.numKeys = tree.numKeys + rightSib.numKeys;
+                tree.setNext(rightSib.getNext());
+            }
+
+        for(int i = parentIndex + 1; i < parentNode.numKeys;i++){
+            parentNode.getChildren()[i] = parentNode.getChildren()[i+1];
+            parentNode.getKeys()[i-1] = parentNode.getKeys()[i];
+        }
+        parentNode.numKeys--;
+        return tree;
+    }
+
+    private BPTreeNode stealFromRight(BPTreeNode tree, int parentIndex){
+        BPTreeNode parentNode = tree.getParent();
+        BPTreeNode rightSib = parentNode.getChildren()[parentIndex];
+        tree.numKeys++;
+        if(tree.isLeaf()){
+            tree.keys[tree.numKeys-1] = rightSib.keys[0];
+            parentNode.keys[parentIndex] = rightSib.keys[1];
+        }else{
+            tree.keys[tree.numKeys-1] = parentNode.keys[parentIndex];
+            parentNode.keys[parentIndex] = rightSib.keys[0];
+        }
+        if(!tree.isLeaf()){
+            tree.getChildren()[tree.numKeys] = rightSib.getChildren()[0];
+            tree.getChildren()[tree.numKeys].setParent(tree);
+            for(int i = 1; i < rightSib.numKeys + 1; i++){
+                rightSib.getChildren()[i-1] = rightSib.getChildren()[i];
+            }
+        }
+        for(int i = 1; i < rightSib.numKeys; i ++){
+            rightSib.keys[i-1] = rightSib.keys[i];
+        }
+        rightSib.numKeys--;
+        return tree;
+    }
+
+    private BPTreeNode stealFromLeft(BPTreeNode tree, int parentIndex){
+        BPTreeNode parentNode = tree.getParent();
+        tree.numKeys++;
+        for(int i = tree.numKeys - 1; i > 0; i --){
+            tree.keys[i] = tree.keys[i-1];
+        }
+        BPTreeNode leftSib = parentNode.getChildren()[parentIndex-1];
+        if(tree.isLeaf()){
+            tree.keys[0] = leftSib.keys[leftSib.numKeys-1];
+            parentNode.keys[parentIndex-1] = parentNode.keys[leftSib.numKeys-1];
+        }else{
+            tree.keys[0] = parentNode.keys[leftSib.numKeys-1];
+            parentNode.keys[parentIndex-1] = leftSib.keys[leftSib.numKeys-1];
+        }
+        if(!tree.isLeaf()){
+            for(int i = tree.numKeys; i > 0; i--){
+                tree.getChildren()[i] = tree.getChildren()[i-1];
+            }
+            tree.getChildren()[0] = leftSib.getChildren()[leftSib.numKeys];
+            leftSib.getChildren()[leftSib.numKeys] = null;
+            tree.getChildren()[0].setParent(tree);
+        }
+        leftSib.numKeys--;
+        return tree;
+    }
+
+
+    private boolean repairAfterDelete(BPTreeNode tree) {
+        if(tree.numKeys < this.min_keys){
+            if(tree.getParent() == null){
+                if(tree.numKeys == 0){
+                    this.root = tree.getChildren()[0];
+                    if(this.root != null){
+                        this.root.setParent(null);
+                    }
+                }
+            }else{
+                BPTreeNode parentNode = tree.getParent();
+                int parentIndex;
+                for(parentIndex = 0; parentNode.getChildren()[parentIndex] != tree; parentIndex++);
+
+                if(parentIndex > 0 && parentNode.getChildren()[parentIndex-1].numKeys + tree.numKeys <= this.max_keys){
+                    BPTreeNode nextNode = mergeRight(parentNode.getChildren()[parentIndex-1]);
+                    return repairAfterDelete(nextNode.getParent());
+                }else if(parentIndex < parentNode.numKeys && parentNode.getChildren()[parentIndex+1].numKeys + tree.numKeys <= this.max_keys){
+                    BPTreeNode nextNode = mergeRight(tree);
+                    return repairAfterDelete(nextNode.getParent());
+                }else if(parentIndex > 0 && parentNode.getChildren()[parentIndex-1].numKeys > this.min_keys){
+                    stealFromLeft(tree,parentIndex);
+                }else if(parentIndex < parentNode.numKeys && parentNode.getChildren()[parentIndex+1].numKeys > this.min_keys){
+                    stealFromRight(tree,parentIndex);
+                }else if(parentIndex == 0){
+                    BPTreeNode nextNode = this.mergeRight(tree);
+                    return repairAfterDelete(nextNode.getParent());
+                }else{
+                    BPTreeNode nextNode = this.mergeRight(parentNode.getChildren()[parentIndex-1]);
+                    return repairAfterDelete(nextNode.getParent());
+                }
+            }
+        }
         return true;
     }
 
@@ -231,6 +347,8 @@ public class BPlusTree implements IBPlusTree{
         tree.insertRecordPointer(new RecordPointer(0,1), 4);
         tree.insertRecordPointer(new RecordPointer(0,1), 5);
         printTree(tree);
+        System.out.println(tree.removeRecordPointer(new RecordPointer(0,1), 5));
+        System.out.println(tree.removeRecordPointer(new RecordPointer(0,1), 6));
         System.out.println(tree.removeRecordPointer(new RecordPointer(0,1), 5));
         printTree(tree);
     }
