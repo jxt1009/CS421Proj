@@ -47,6 +47,7 @@ public class Database {
                 // Ugly but will be useful when we implement executeQuery
                 if (inputString.toLowerCase().startsWith("create table")
                         || inputString.toLowerCase().startsWith("drop table")
+                        || inputString.toLowerCase().startsWith("create index")
                         || inputString.toLowerCase().startsWith("insert")
                         || inputString.toLowerCase().startsWith("update")
                         || inputString.toLowerCase().startsWith("delete")

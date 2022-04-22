@@ -337,14 +337,12 @@ public class BPlusTree implements IBPlusTree{
                 if(!tree.isLeaf()){
                     return searchForKey(tree.getChildren()[tree.numKeys], searchKey);
                 }else{
-                    System.err.println("hm");
                     return null;
                 }
             }else if(RecordHelper.greaterThan(tree.keys[i],searchKey)){
                 if(!tree.isLeaf()){
                     return searchForKey(tree.getChildren()[i],searchKey);
                 }else{
-                    System.err.println("hm2");
                     return null;
                 }
             }else{
