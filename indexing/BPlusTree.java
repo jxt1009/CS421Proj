@@ -25,9 +25,9 @@ public class BPlusTree implements IBPlusTree{
     }
 
     @Override
-    //TODO create wrapper record pointer object to include search key for tree traversal
+    // TODO create wrapper record pointer object to include search key for tree traversal
     public boolean insertRecordPointer(RecordPointer rp, Object searchKey) {
-        //TODO likely needs a recursive function to be called from here
+        // TODO likely needs a recursive function to be called from here
         // to traverse tree and insert based on search key location
         if(tree.isEmpty()){
             return tree.add(new IndexNode(rp, searchKey));
