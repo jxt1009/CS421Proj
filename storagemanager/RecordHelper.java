@@ -14,6 +14,11 @@ public class RecordHelper {
     }
 
     public static boolean lessThan(Object o1, Object o2) {
+        if(o1 == null && o2 != null){
+            return true;
+        }else if(o1 != null && o2 == null){
+            return false;
+        }
         if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 < (Integer) o2;
         } else if(o1 instanceof Integer && o2 instanceof Double){
@@ -24,7 +29,7 @@ public class RecordHelper {
             return (Double) o1 < (Double) o2;
         } else if(o1 instanceof Boolean && o2 instanceof Boolean){
             return !(Boolean) o1 && (Boolean) o2;
-        } else if (o1 instanceof String || o1 instanceof Character) {
+        } else if (o1 instanceof String || o1 instanceof Character ) {
             return ((String) o1).compareTo((String) o2) < 0;
         }
         System.err.println("Invalid types compared: '"+o1.getClass() + "' and '"+o2.getClass()+"'");
@@ -32,6 +37,11 @@ public class RecordHelper {
     }
 
     public static boolean lessThanEquals(Object o1, Object o2) {
+        if(o1 == null && o2 != null){
+            return true;
+        }else if(o1 != null && o2 == null){
+            return false;
+        }
         if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 <= (Integer) o2;
         } else if(o1 instanceof Integer && o2 instanceof Double){
@@ -50,6 +60,11 @@ public class RecordHelper {
     }
 
     public static boolean greaterThan(Object o1, Object o2) {
+        if(o1 == null && o2 != null){
+            return true;
+        }else if(o1 != null && o2 == null){
+            return false;
+        }
         if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 > (Integer) o2;
         } else if(o1 instanceof Integer && o2 instanceof Double){
@@ -68,6 +83,11 @@ public class RecordHelper {
     }
 
     public static boolean greaterThanEquals(Object o1, Object o2) {
+        if(o1 == null && o2 != null){
+            return true;
+        }else if(o1 != null && o2 == null){
+            return false;
+        }
         if(o1 instanceof Integer && o2 instanceof Integer){
             return (Integer) o1 >= (Integer) o2;
         } else if(o1 instanceof Integer && o2 instanceof Double){
@@ -86,6 +106,11 @@ public class RecordHelper {
     }
 
     public static boolean equals(Object o1, Object o2) {
+        if(o1 == null && o2 != null){
+            return false;
+        }else if(o1 != null && o2 == null){
+            return false;
+        }
         if(o1 == null || o2 == null){
             return false;
         }
@@ -106,6 +131,12 @@ public class RecordHelper {
     }
 
     public static boolean notEquals(Object o1, Object o2) {
+
+        if(o1 == null && o2 != null){
+            return false;
+        }else if(o1 != null && o2 == null){
+            return true;
+        }
         if (o1 instanceof String || o1 instanceof Character) {
             return ((String) o1).compareTo((String) o2) != 0;
         }else{
@@ -114,6 +145,9 @@ public class RecordHelper {
     }
 
     public static boolean isNumeric(Object o) {
+        if(o == null){
+            return false;
+        }
         try {
             Integer.parseInt(o.toString());
             return true;
