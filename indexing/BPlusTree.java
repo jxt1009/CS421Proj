@@ -38,7 +38,7 @@ public class BPlusTree implements IBPlusTree{
             }
             while(tmp != null){
                 for(int i = 0; i < tmp.numKeys; i++){
-                    System.out.println(tmp.getKeys()[i]);
+                    System.out.println(tmp.getKeys()[i] + " " + records.get(tmp.getKeys()[i]));
                 }
                 tmp = tmp.getNext();
             }
