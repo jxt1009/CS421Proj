@@ -1,6 +1,8 @@
 package indexing;
 
+import catalog.ACatalog;
 import common.RecordPointer;
+import common.Table;
 import storagemanager.RecordHelper;
 
 import java.util.ArrayList;
@@ -16,14 +18,16 @@ public class BPlusTree implements IBPlusTree{
     private int max_keys = 6;
     private int min_keys = 1;
     private int split_index = 1;
+    private Table table;
 
     private BPTreeNode root;
     private int index;
 
-    public BPlusTree(String column, int pageSize){
+    public BPlusTree(Table table, String column, int pageSize){
         this.columnName = column;
         this.pageSize = pageSize;
-        // TODO write first index page to disk if starting from scratch
+        this.table = table;
+        // TODO Calculate max_keys here based on column data type
     }
 
     public BPlusTree(String column){
@@ -363,12 +367,14 @@ public class BPlusTree implements IBPlusTree{
     }
 
     public static void main(String[] args){
-        BPlusTree tree = new BPlusTree("aa",5);
+        BPlusTree tree = new BPlusTree(null,"aa",5);
         tree.insertRecordPointer(new RecordPointer(0,1), 5);
         tree.insertRecordPointer(new RecordPointer(0,2), 6);
         tree.insertRecordPointer(new RecordPointer(0,3), 7);
         tree.insertRecordPointer(new RecordPointer(0,4), 8);
         tree.insertRecordPointer(new RecordPointer(0,5), 9);
+        tree.insertRecordPointer(new RecordPointer(0,6), 9);
+        tree.insertRecordPointer(new RecordPointer(0,7), 9);
         tree.insertRecordPointer(new RecordPointer(0,6), 10);
         tree.insertRecordPointer(new RecordPointer(0,7), 0);
         tree.insertRecordPointer(new RecordPointer(0,8), 1);

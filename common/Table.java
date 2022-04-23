@@ -143,7 +143,7 @@ public class Table implements ITable {
             return false;
         }
         if(containsColumn(attributeName)) {
-            BPlusTree tree = new BPlusTree(attributeName, ACatalog.getCatalog().getPageSize());
+            BPlusTree tree = new BPlusTree(this,attributeName, ACatalog.getCatalog().getPageSize());
             indexes.put(attributeName, tree);
             return true;
         }

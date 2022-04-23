@@ -29,7 +29,7 @@ public class Database {
     public static void main(String[] args) {
         catalog = ACatalog.createCatalog(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]));
         sm = (StorageManager) AStorageManager.createStorageManager();
-
+        System.out.println("READY. Please enter a statement:");
         Scanner in = new Scanner(System.in);
         StringBuilder input = new StringBuilder(in.next());
 

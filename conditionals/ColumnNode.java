@@ -13,7 +13,7 @@ public class ColumnNode extends Node{
 
     private final Table table;
     private int columnIndex = -1;
-    private Attribute columnAttribute;
+    private String columnName;
 
     public ColumnNode(String columnName, Table table){
         this.table = table;
@@ -25,9 +25,6 @@ public class ColumnNode extends Node{
     public int getColumnIndex(){
         return columnIndex;
     }
-    public Attribute getColumnAttribute(){
-        return columnAttribute;
-    }
 
     @Override
     public ArrayList<ArrayList<Object>> evaluate() {
@@ -35,6 +32,6 @@ public class ColumnNode extends Node{
     }
 
     public String toString(){
-        return "Column " + columnAttribute.getAttributeName();
+        return "Column " + columnName;
     }
 }
