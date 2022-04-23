@@ -87,4 +87,9 @@ public class StorageManager extends AStorageManager{
         }
         return success;
     }
+
+
+    public boolean populateIndex(ITable itable, String indexName){
+        return pageBuffer.populateIndex(itable,indexName);
+    }
 }

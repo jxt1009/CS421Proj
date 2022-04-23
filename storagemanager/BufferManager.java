@@ -1,9 +1,13 @@
 package storagemanager;
 
 import catalog.ACatalog;
+import catalog.Catalog;
 import common.Attribute;
 import common.ITable;
+import common.RecordPointer;
 import common.Table;
+import indexing.BPTreeNode;
+import indexing.BPlusTree;
 
 import java.io.*;
 import java.util.*;
@@ -46,6 +50,16 @@ public class BufferManager {
             pages.add(page);
         }
         return pages;
+    }
+
+    public Page loadPage(Table table, Integer pageID) {
+            Page page = findPageInBuffer(pageID);
+            if (page == null) {
+                page = new Page(table, pageDir.getPath() + "/" + pageID, pageID);
+                addPageToBuffer(page);
+                table.addPage(pageID);
+            }
+        return page;
     }
 
     public Page findPageInBuffer(Integer searchPage) {
@@ -149,6 +163,18 @@ public class BufferManager {
 
     public ArrayList<Object> getRecord(ITable itable, Object pkValue) {
         Table table = (Table) itable;
+        BPlusTree tree = table.getIndex(table.getPrimaryKey());
+        if(tree != null) {
+            ArrayList<RecordPointer> rpList = tree.search(pkValue);
+            if(rpList.size() > 0) {
+                RecordPointer rp = rpList.get(0);
+                Page p = loadPage(table,rp.page());
+                return p.getRecords().get(rp.index());
+            }else{
+                System.err.println("Error could not find page");
+                return null;
+            }
+        }
         int primaryKeyIndex = table.getAttributes().indexOf(table.getPrimaryKey());
         Page searchPage = searchForPage(itable, pkValue);
         if (searchPage != null) {
@@ -167,6 +193,12 @@ public class BufferManager {
 
     private Page searchForPage(ITable itable, Object pkValue) {
         Table table = (Table) itable;
+        BPlusTree tree = table.getIndex(table.getPrimaryKey());
+        if(tree != null){
+            ArrayList<RecordPointer> rpList = tree.search(pkValue);
+            RecordPointer rp = rpList.get(0);
+            return loadPage(table,rp.page());
+        }
         int primaryKeyIndex = table.getPrimaryKeyIndex();
         for (Page page : loadAllPages(table)) {
             if (page.getRecords().size() > 0) {
@@ -192,17 +224,45 @@ public class BufferManager {
         return allRecords;
     }
 
+    public boolean populateIndex(ITable itable, String indexName){
+        Table table = (Table) itable;
+        Attribute indexCol = table.getAttrByName(indexName);
+        boolean success = true;
+        if(indexCol != null && table.hasIndex(indexCol)){
+            BPlusTree tree = table.getIndex(table.getPrimaryKey());
+            for(Integer page : table.getPageList()){
+                Page p = loadPage(table, page);
+                ArrayList<ArrayList<Object>> pageRecords = p.getRecords();
+                for(int i = 0; i < pageRecords.size(); i++) {
+                    ArrayList<Object> row = pageRecords.get(i);
+                    Object value = row.get(table.getColumnIndex(indexName));
+                    RecordPointer rp = new RecordPointer(page,i);
+                    success = success && tree.insertRecordPointer(rp,value);
+                }
+            }
+        }
+        return success;
+    }
+
     public boolean insertRecord(ITable itable, ArrayList<Object> record) {
         Table table = (Table) itable;
+        BPlusTree tree = table.getIndex(table.getPrimaryKey());
+        if (RecordHelper.formatRecord(table, record) == null) {
+            System.err.println("Record improperly formatted: " + record + " for attributes: " + table.getAttributes());
+            return false;
+        }
+        if(tree != null){
+            if(tree.search(record.get(table.getPrimaryKeyIndex())) != null){
+                System.err.println("Error: Primary key already exists in column");
+                return false;
+            }
+        }
         ArrayList<Page> tablePages = loadAllPages(table);
         if (record == null) {
             System.err.println("Record cannot be null.");
             return false;
         }
-        if (RecordHelper.formatRecord(table, record) == null) {
-            System.err.println("Record improperly formatted: " + record + " for attributes: " + table.getAttributes());
-            return false;
-        }
+
         if (tablePages.size() == 0) {
             Page p = addNewPage(table);
             return p.addRecord(table, record, 0);
@@ -219,13 +279,20 @@ public class BufferManager {
                 if (!page.hasSpace()) {
                     page = cutRecords(table, page, canAdd);
                 }
-                return page.addRecord(table, record, canAdd);
+                return page.addRecord(table, record, canAdd) &&
+                        (tree == null || tree.insertRecordPointer(
+                                new RecordPointer(page.getPageId(),canAdd),
+                                record.get(table.getPrimaryKeyIndex()))
+                        );
             }
         }
         if (canAdd == -1) {
-            Page p = tablePages.get(tablePages.size() - 1);
+            Page page = tablePages.get(tablePages.size() - 1);
             updateBuffer();
-            return p.addRecord(table, record, p.getRecords().size());
+            return page.addRecord(table, record, page.getRecords().size()) &&
+                    (tree == null || tree.insertRecordPointer(
+                            new RecordPointer(page.getRecords().size(), canAdd),
+                            record.get(table.getPrimaryKeyIndex())));
         } else {
             System.err.println("error");
             return false;

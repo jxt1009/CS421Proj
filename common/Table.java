@@ -1,9 +1,12 @@
 package common;
 
+import catalog.ACatalog;
+import indexing.BPlusTree;
+import storagemanager.AStorageManager;
 import storagemanager.StorageManager;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Table implements ITable {
 
@@ -17,6 +20,7 @@ public class Table implements ITable {
     private ForeignKey foreignKey;
     private String index;
 
+    private HashMap<String,BPlusTree> indexes = new HashMap<>();
     private ArrayList<Integer> pageList = new ArrayList<>();
 
     public Table(String tableName, ArrayList<Attribute> attributes, Attribute primaryKey) {
@@ -135,12 +139,15 @@ public class Table implements ITable {
 
     @Override
     public boolean addIndex(String attributeName) {
-        // Ensure an index is not already set. If so, return false
-        if (index != null) {
+        if(indexes.containsKey(attributeName)){
             return false;
         }
-        this.index = attributeName;
-        return true;
+        if(containsColumn(attributeName)) {
+            BPlusTree tree = new BPlusTree(attributeName, ACatalog.getCatalog().getPageSize());
+            indexes.put(attributeName, tree);
+            return true;
+        }
+        return false;
     }
 
     public boolean addPage(int pageID) {
@@ -194,4 +201,17 @@ public class Table implements ITable {
         this.index = null;
 
     }
+
+    public boolean hasIndex(Attribute primaryKey) {
+        return indexes.containsKey(primaryKey.getAttributeName());
+    }
+
+    public BPlusTree getIndex(Attribute primaryKey) {
+        if(containsColumn(primaryKey.getAttributeName())) {
+            return indexes.get(primaryKey.getAttributeName());
+        }
+        System.err.println("Index name not found");
+        return null;
+    }
+
 }

@@ -5,6 +5,7 @@ import common.ITable;
 import common.Table;
 import indexing.BPTreeNode;
 import indexing.BPlusTree;
+import storagemanager.AStorageManager;
 import storagemanager.FileManager;
 import storagemanager.StorageManager;
 
@@ -134,8 +135,8 @@ public class Catalog extends ACatalog {
                 System.err.println("Error finding attribute to index: " + indexName);
                 return false;
             }
-            indexes.put(indexName, new BPlusTree(attrName,pageSize));
-            return table.addIndex(attr.getAttributeName());
+            StorageManager sm = (StorageManager) AStorageManager.getStorageManager();
+            return table.addIndex(attr.getAttributeName()) && sm.populateIndex(table,attrName);
         }
         else {
             return false;
