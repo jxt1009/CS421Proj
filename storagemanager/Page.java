@@ -135,7 +135,7 @@ public class Page {
         return currentSizeBytes < pageSize;
     }
 
-    private int getTypeBytes(Object record, String type) {
+    public int getTypeBytes(Object record, String type) {
         if (type.equals("Integer")) {
             return 4;
         } else if (type.equals("Double")) {

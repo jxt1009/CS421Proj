@@ -8,6 +8,8 @@ import storagemanager.RecordHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import storagemanager.Page;
+import java.lang.Math;
 
 public class BPlusTree implements IBPlusTree{
 
@@ -15,6 +17,7 @@ public class BPlusTree implements IBPlusTree{
     private String columnName;
     private ArrayList<BPTreeNode> tree = new ArrayList<BPTreeNode>();
     private HashMap<Object, RecordPointer> records = new HashMap<>();
+    private Page page;
     private int max_keys = 6;
     private int min_keys = 1;
     private int split_index = 1;
@@ -27,7 +30,12 @@ public class BPlusTree implements IBPlusTree{
         this.columnName = column;
         this.pageSize = pageSize;
         this.table = table;
-        // TODO Calculate max_keys here based on column data type
+        String attribute_type = table.getAttrByName(columnName).getAttributeType();
+        double type_bytes = (double) page.getTypeBytes(table.getAttrByName(columnName), attribute_type);
+        double page_pointer = 4;
+        double pair_size = type_bytes + page_pointer;
+        double pairs = pageSize / pair_size;
+        double n_value = Math.floor(pairs); // n value of the B+ Tree
     }
 
     public BPlusTree(String column){
