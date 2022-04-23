@@ -74,8 +74,6 @@ public class DDLParser {
         }
         System.err.println("DDL Statement not properly structured, could not parse");
         return false;
-
-
     }
 
 
@@ -280,7 +278,7 @@ public class DDLParser {
         String index = stmt.split(" ")[2];
         String indexString = stmt.split("on")[1].strip();
         String tableName = indexString.split("\\(")[0];
-        String attrName = indexString.split("\\(")[1].split("\\)")[0];
+        String attrName = indexString.split("\\( ")[1].split("\\)")[0];
         return catalog.addIndex(tableName, index, attrName);
     }
 
