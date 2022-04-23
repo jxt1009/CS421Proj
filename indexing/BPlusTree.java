@@ -17,7 +17,6 @@ public class BPlusTree implements IBPlusTree{
     private String columnName;
     private ArrayList<BPTreeNode> tree = new ArrayList<BPTreeNode>();
     private HashMap<Object, RecordPointer> records = new HashMap<>();
-    private Page page;
     private int max_keys = 6;
     private int min_keys = 1;
     private int split_index = 1;
@@ -31,7 +30,7 @@ public class BPlusTree implements IBPlusTree{
         this.pageSize = pageSize;
         this.table = table;
         String attribute_type = table.getAttrByName(columnName).getAttributeType();
-        double type_bytes = (double) page.getTypeBytes(table.getAttrByName(columnName), attribute_type);
+        double type_bytes = (double) RecordHelper.getTypeBytes(table.getAttrByName(columnName), attribute_type);
         double page_pointer = 4;
         double pair_size = type_bytes + page_pointer;
         double pairs = pageSize / pair_size;

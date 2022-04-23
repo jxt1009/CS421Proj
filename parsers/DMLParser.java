@@ -377,6 +377,10 @@ public class DMLParser {
             // If not a column, assume it is a value
             right = new ValueNode(rightString);
         }
+        System.out.println(left.getColumnName() + " " + left.getTable().getAttributes());
+        if(left.getTable().hasIndex(left.getTable().getAttrByName(left.getColumnName()))){
+            System.out.println("index available!!" + left.getTable().hasIndex(left.getTable().getAttrByName(left.getColumnName())));
+        }
         // Create operator node w/ values
         return new OperatorNode(left, right, operator);
     }

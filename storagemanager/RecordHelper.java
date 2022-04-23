@@ -261,7 +261,7 @@ public class RecordHelper {
                 if (columnName.equalsIgnoreCase(column)) {
                     // If we already found a match, throw an error, query  column name is ambiguous
                     if (!selectedColumn.isEmpty()) {
-                        System.out.println("Attempting to use column name without specifying table name: " + column);
+                        System.err.println("Attempting to use column name without specifying table name: " + column);
                         return "";
                     } else {
                         selectedColumn = attr.getAttributeName();
@@ -272,6 +272,22 @@ public class RecordHelper {
         }else{
             return columnName;
         }
+    }
+
+    public static int getTypeBytes(Object record, String type) {
+        if (type.equals("Integer")) {
+            return 4;
+        } else if (type.equals("Double")) {
+            return 8;
+        } else if (type.equals("Boolean")) {
+            return 1;
+        } else if (type.startsWith("Varchar")) {
+            String outputString = (String) record;
+            return (outputString.length() * 2) + 6;
+        } else if (type.startsWith("Char")) {
+            return (Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")"))) * 2) + 4;
+        }
+        return 0;
     }
 
 }

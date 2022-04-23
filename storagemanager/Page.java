@@ -129,26 +129,10 @@ public class Page {
             for (int j = 0; j < records.size(); j++) {
                 Object record = records.get(j);
                 String type = table.getAttributes().get(j).getAttributeType();
-                currentSizeBytes += getTypeBytes(record, type);
+                currentSizeBytes += RecordHelper.getTypeBytes(record, type);
             }
         }
         return currentSizeBytes < pageSize;
-    }
-
-    public int getTypeBytes(Object record, String type) {
-        if (type.equals("Integer")) {
-            return 4;
-        } else if (type.equals("Double")) {
-            return 8;
-        } else if (type.equals("Boolean")) {
-            return 1;
-        } else if (type.startsWith("Varchar")) {
-            String outputString = (String) record;
-            return (outputString.length() * 2) + 6;
-        } else if (type.startsWith("Char")) {
-            return (Integer.parseInt(type.substring(type.indexOf("(") + 1, type.indexOf(")"))) * 2) + 4;
-        }
-        return 0;
     }
 
     public boolean updateRecord(ITable table, Object primaryKey, ArrayList<Object> newRecord) {

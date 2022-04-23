@@ -92,4 +92,5 @@ public class StorageManager extends AStorageManager{
     public boolean populateIndex(ITable itable, String indexName){
         return pageBuffer.populateIndex(itable,indexName);
     }
+
 }

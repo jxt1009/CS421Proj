@@ -1,29 +1,38 @@
 package conditionals;
 
 import catalog.ACatalog;
-import common.Attribute;
 import common.Table;
 import storagemanager.RecordHelper;
 import storagemanager.StorageManager;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 public class ColumnNode extends Node{
 
-    private final Table table;
+    private Table table;
     private int columnIndex = -1;
     private String columnName;
 
     public ColumnNode(String columnName, Table table){
-        this.table = table;
         columnName = RecordHelper.checkTableColumns(table.getAttributes(),columnName);
-        columnIndex = table.getColumnIndex(columnName);
+        if(columnName.contains(".")){
+            String[] columnInfo = columnName.split("\\.");
+            columnName = columnInfo[1];
+            table = (Table) ACatalog.getCatalog().getTable(columnInfo[0]);
+        }
+        this.table = table;
+        this.columnName = columnName;
+        columnIndex = table.getColumnIndex(this.columnName);
     }
 
 
     public int getColumnIndex(){
         return columnIndex;
+    }
+
+    public String getColumnName(){
+        return columnName;
     }
 
     @Override
@@ -33,5 +42,9 @@ public class ColumnNode extends Node{
 
     public String toString(){
         return "Column " + columnName;
+    }
+
+    public Table getTable() {
+        return table;
     }
 }

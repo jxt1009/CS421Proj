@@ -422,4 +422,8 @@ public class BufferManager {
         t.clear();
         return true;
     }
+
+    public void getNumRows() {
+
+    }
 }
