@@ -30,12 +30,12 @@ public class BPlusTree implements IBPlusTree{
         this.columnName = column;
         this.pageSize = pageSize;
         this.table = table;
-        String attribute_type = table.getAttrByName(columnName).getAttributeType();
-        double type_bytes = (double) page.getTypeBytes(table.getAttrByName(columnName), attribute_type);
-        double page_pointer = 4;
-        double pair_size = type_bytes + page_pointer;
-        double pairs = pageSize / pair_size;
-        double n_value = Math.floor(pairs); // n value of the B+ Tree
+//        String attribute_type = table.getAttrByName(columnName).getAttributeType();
+//        double type_bytes = (double) page.getTypeBytes(table.getAttrByName(columnName), attribute_type);
+//        double page_pointer = 4;
+//        double pair_size = type_bytes + page_pointer;
+//        double pairs = pageSize / pair_size;
+//        double n_value = Math.floor(pairs); // n value of the B+ Tree
     }
 
     public BPlusTree(String column){
@@ -370,6 +370,50 @@ public class BPlusTree implements IBPlusTree{
 
     @Override
     public ArrayList<RecordPointer> searchRange(Object searchKey, boolean lessThan, boolean equalTo) {
+        return searchForRange(this.root, searchKey, lessThan, equalTo, new ArrayList<RecordPointer>());
+    }
+
+    private ArrayList<RecordPointer> searchForRange(BPTreeNode tree, Object searchKey, boolean lessThan, boolean equalsTo, ArrayList<RecordPointer> pointers) {
+        if (tree != null) {
+            int i;
+            if (lessThan && equalsTo) {
+                for (i = 0; (i < tree.numKeys) && RecordHelper.lessThanEquals(tree.keys[i], searchKey); i++) ;
+            } else if (lessThan) {
+                for (i = 0; (i < tree.numKeys) && RecordHelper.lessThan(tree.keys[i], searchKey); i++) ;
+            } else if (equalsTo) {
+                for (i = tree.numKeys; (i > 0) && RecordHelper.greaterThan(tree.keys[i], searchKey); i++) ;
+            } else {
+                for (i = tree.numKeys; (i > 0) && RecordHelper.greaterThanEquals(tree.keys[i], searchKey); i++) ;
+            }
+
+            if (i == tree.numKeys) {
+                if (!tree.isLeaf()) {
+                    return searchForRange(tree.getChildren()[tree.numKeys], searchKey, lessThan, equalsTo, pointers);
+                } else {
+                    if (equalsTo && RecordHelper.equals(tree.keys[i], searchKey)) {
+                        pointers.add(records.get(tree.keys[i]));
+                    }
+                    return null;
+                }
+            } else if (RecordHelper.greaterThan(tree.keys[i], searchKey)) {
+                if (!tree.isLeaf()) {
+                    return searchForRange(tree.getChildren()[i], searchKey, lessThan, equalsTo, pointers);
+                } else {
+                    if (!lessThan) {
+                        pointers.add(records.get(tree.keys[i]));
+                    }
+                    return null;
+                }
+            } else {
+                if (!tree.isLeaf()) {
+                    return searchForRange(tree.getChildren()[i+1], searchKey, lessThan, equalsTo, pointers);
+                } else {
+                    // does this and the above actually grab everything? will test in the morning.
+                    pointers.add(records.get(searchKey));
+                    return pointers;
+                }
+            }
+        }
         return null;
     }
 
