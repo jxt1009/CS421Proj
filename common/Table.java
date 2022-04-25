@@ -140,6 +140,7 @@ public class Table implements ITable {
     @Override
     public boolean addIndex(String attributeName) {
         if(indexes.containsKey(attributeName)){
+            System.err.println("Index already exists on column");
             return false;
         }
         if(containsColumn(attributeName)) {
@@ -214,4 +215,12 @@ public class Table implements ITable {
         return null;
     }
 
+    public boolean dropIndex(String indexName) {
+        if(!indexes.containsKey(indexName)){
+            System.err.println("Index does not exist");
+            return false;
+        }
+        indexes.remove(indexName);
+        return true;
+    }
 }

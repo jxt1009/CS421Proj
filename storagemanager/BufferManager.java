@@ -226,7 +226,6 @@ public class BufferManager {
 
     public boolean populateIndex(ITable itable, String indexName){
         Table table = (Table) itable;
-        System.out.println(table.getTableName());
         Attribute indexCol = table.getAttrByName(indexName);
         boolean success = true;
         if(indexCol != null && table.hasIndex(indexCol)){
@@ -241,7 +240,6 @@ public class BufferManager {
                     success = success && tree.insertRecordPointer(rp,value);
                 }
             }
-            tree.printTree(tree);
         }else{
             success = false;
         }

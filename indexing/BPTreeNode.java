@@ -88,7 +88,6 @@ public class BPTreeNode {
                 }
             }
             int nextPage = inputStream.readInt();
-            System.out.println(pageIndex + " " + Arrays.toString(keys) + " " + nextPage);
             // read in next value
             inputStream.close();
             fileInputStream.close();

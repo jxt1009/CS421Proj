@@ -377,9 +377,9 @@ public class DMLParser {
             // If not a column, assume it is a value
             right = new ValueNode(rightString);
         }
-        System.out.println(left.getColumnName() + " " + left.getTable().getAttributes());
         if(left.getTable().hasIndex(left.getTable().getAttrByName(left.getColumnName()))){
-            System.out.println("index available!!" + left.getTable().hasIndex(left.getTable().getAttrByName(left.getColumnName())));
+            //System.out.println("index available" + left.getTable().hasIndex(left.getTable().getAttrByName(left.getColumnName())));
+            // TODO add index node to wrap around an operator node and use index instead of table
         }
         // Create operator node w/ values
         return new OperatorNode(left, right, operator);
@@ -402,8 +402,10 @@ public class DMLParser {
         }
         if(query.startsWith("select")){
             return parseSelectClause(query);
+        }else{
+            System.err.println("Select statement malformed");
+            return null;
         }
-        return null;
     }
 
     public static ResultSet parseSelectClause(String query) {

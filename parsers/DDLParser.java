@@ -69,7 +69,6 @@ public class DDLParser {
         }
         //to do create index statements
         else if(stmt.toLowerCase().startsWith("create index")){
-            System.out.println("here");
             return parseIndexClause(stmt);
         }
         System.err.println("DDL Statement not properly structured, could not parse");
@@ -158,7 +157,7 @@ public class DDLParser {
             return false;
         }
         if(keywords.contains(tableName.toLowerCase())){
-            System.err.println("tablename is a keyword");
+            System.err.println("Table name is a keyword");
         }
 
         //checking if table name starts with alpha char
@@ -277,9 +276,7 @@ public class DDLParser {
         //"create index myFooIndex on foo( bar );";
         String indexString = stmt.split("create index")[1];
         String indexName = indexString.split("on")[0].strip();
-        System.out.println(indexName);
         String tableName = indexString.split("\\(")[0].split("on")[1].strip();
-        System.out.println(tableName);
         String attrName = indexString.split("\\(")[1].split("\\)")[0].strip();
         return catalog.addIndex(tableName, indexName, attrName);
     }

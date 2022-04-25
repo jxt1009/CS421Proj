@@ -43,22 +43,29 @@ public class Database {
             }
             String[] inputStrings = input.toString().split(";");
             for(String inputString : inputStrings) {
-                inputString += ";";
-                // Ugly but will be useful when we implement executeQuery
-                if (inputString.toLowerCase().startsWith("create table")
+                try {
+                    inputString += ";";
+                    // Ugly but will be useful when we implement executeQuery
+                    if (inputString.toLowerCase().startsWith("create table")
                         || inputString.toLowerCase().startsWith("drop table")
                         || inputString.toLowerCase().startsWith("create index")
                         || inputString.toLowerCase().startsWith("insert")
                         || inputString.toLowerCase().startsWith("update")
                         || inputString.toLowerCase().startsWith("delete")
                         || inputString.toLowerCase().startsWith("alter table")) {
-                    if(executeStatement(inputString)){
-                        System.out.println("SUCCESS");
-                    }else{
-                        System.err.println("ERROR: " + inputString);
+
+                        boolean success = executeStatement(inputString);
+                        if (success) {
+                            System.out.println("SUCCESS");
+                        } else {
+                            System.err.println("ERROR: " + inputString);
+                        }
+                    }else if (inputString.toLowerCase().startsWith("select")) {
+                       printTable(executeQuery(inputString));
                     }
-                }else if (inputString.toLowerCase().startsWith("select")) {
-                   printTable(executeQuery(inputString));
+                }catch(Exception e){
+                    System.err.println("Error with query execution");
+                    //e.printStackTrace();
                 }
             }
             input = new StringBuilder(in.next().toLowerCase());
@@ -106,9 +113,10 @@ public class Database {
             attrs.add(attr.attributeName());
         }
         rows.add(0,attrs);
-        int[] maxLengths = new int[rows.get(0).size()];
+        int[] maxLengths = new int[rows.get(0).size()-1];
         for (ArrayList<Object> row : rows)
         {
+            row.remove(0);
             for (int i = 0; i < row.size(); i++)
             {
                 maxLengths[i] = Math.max(maxLengths[i], row.get(i).toString().length()+2);

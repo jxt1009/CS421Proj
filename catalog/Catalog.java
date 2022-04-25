@@ -148,7 +148,13 @@ public class Catalog extends ACatalog {
      */
     @Override
     public boolean dropIndex(String tableName, String indexName) {
-        return false;
+        if(containsTable(tableName)){
+            Table table = (Table) getTable(tableName);
+            return table.dropIndex(indexName);
+        }
+        else {
+            return false;
+        }
     }
 
     @Override
