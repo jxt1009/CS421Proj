@@ -30,41 +30,7 @@ public class OperatorNode extends Node {
                 Object leftValue = leftRecord.get(columnIndex);
                 Object rightValue = ((ValueNode) right).getValue();
 
-                switch (operator) {
-                    case ">":
-                        if (RecordHelper.greaterThan(leftValue, rightValue)) {
-                            results.add(leftRecord);
-                        }
-                        break;
-                    case "<":
-                        if (RecordHelper.lessThan(leftValue, rightValue)) {
-                            results.add(leftRecord);
-                        }
-                        break;
-                    case "=":
-                        if (RecordHelper.equals(leftValue, rightValue)) {
-                            results.add(leftRecord);
-                        }
-                        break;
-                    case ">=":
-                        if (RecordHelper.greaterThanEquals(leftValue, rightValue)) {
-                            results.add(leftRecord);
-                        }
-                        break;
-                    case "<=":
-                        if (RecordHelper.lessThanEquals(leftValue, rightValue)) {
-                            results.add(leftRecord);
-                        }
-                        break;
-                    case "!=":
-                        if (RecordHelper.notEquals(leftValue, rightValue)) {
-                            results.add(leftRecord);
-                        }
-                        break;
-                    default:
-                        System.err.println("Invalid operation in 'where' clause: " + operator);
-                        return null;
-                }
+                evalOperator(leftValue,rightValue,leftRecord,results);
             }
         } else {
             ArrayList<ArrayList<Object>> rightResults = right.evaluate();
@@ -75,46 +41,49 @@ public class OperatorNode extends Node {
 
                     int rightColumnIndex = ((ColumnNode) right).getColumnIndex();
                     Object rightValue = rightRecord.get(rightColumnIndex);
-
-                    switch (operator) {
-                        case ">":
-                            if (RecordHelper.greaterThan(leftValue, rightValue)) {
-                                results.add(leftRecord);
-                            }
-                            break;
-                        case "<":
-                            if (RecordHelper.lessThan(leftValue, rightValue)) {
-                                results.add(leftRecord);
-                            }
-                            break;
-                        case "=":
-                            if (RecordHelper.equals(leftValue, rightValue)) {
-                                results.add(leftRecord);
-                            }
-                            break;
-                        case ">=":
-                            if (RecordHelper.greaterThanEquals(leftValue, rightValue)) {
-                                results.add(leftRecord);
-                            }
-                            break;
-                        case "<=":
-                            if (RecordHelper.lessThanEquals(leftValue, rightValue)) {
-                                results.add(leftRecord);
-                            }
-                            break;
-                        case "!=":
-                            if (RecordHelper.notEquals(leftValue, rightValue)) {
-                                results.add(leftRecord);
-                            }
-                            break;
-                        default:
-                            System.err.println("Invalid operation in 'where' clause: " + operator);
-                            return null;
-                    }
+                    evalOperator(leftValue,rightValue,leftRecord,results);
                 }
             }
         }
         return results;
+    }
+
+    private void evalOperator(Object leftValue, Object rightValue, ArrayList<Object> leftRecord, ArrayList<ArrayList<Object>> results) {
+        switch (operator) {
+            case ">":
+                if (RecordHelper.greaterThan(leftValue, rightValue)) {
+                    results.add(leftRecord);
+                }
+                break;
+            case "<":
+                if (RecordHelper.lessThan(leftValue, rightValue)) {
+                    results.add(leftRecord);
+                }
+                break;
+            case "=":
+                if (RecordHelper.equals(leftValue, rightValue)) {
+                    results.add(leftRecord);
+                }
+                break;
+            case ">=":
+                if (RecordHelper.greaterThanEquals(leftValue, rightValue)) {
+                    results.add(leftRecord);
+                }
+                break;
+            case "<=":
+                if (RecordHelper.lessThanEquals(leftValue, rightValue)) {
+                    results.add(leftRecord);
+                }
+                break;
+            case "!=":
+                if (RecordHelper.notEquals(leftValue, rightValue)) {
+                    results.add(leftRecord);
+                }
+                break;
+            default:
+                System.err.println("Invalid operation in 'where' clause: " + operator);
+
+        }
     }
     public String toString(){
         return "(" +left.toString() + ") " + operator + " (" + right.toString() + ")";

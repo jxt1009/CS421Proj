@@ -377,6 +377,10 @@ public class DMLParser {
             // If not a column, assume it is a value
             right = new ValueNode(rightString);
         }
+        System.out.println(left.getColumnName() + " " + left.getTable().getAttributes());
+        if(left.getTable().hasIndex(left.getTable().getAttrByName(left.getColumnName()))){
+            System.out.println("index available!!" + left.getTable().hasIndex(left.getTable().getAttrByName(left.getColumnName())));
+        }
         // Create operator node w/ values
         return new OperatorNode(left, right, operator);
     }
@@ -419,6 +423,7 @@ public class DMLParser {
         }
         if (rows == null) {
             System.err.println("Where clause could not be parsed");
+            return null;
         }
         rows = (ArrayList<ArrayList<Object>>) rows.clone();
         ResultSet results;
@@ -518,9 +523,6 @@ public class DMLParser {
                             }
                         }
                     }
-                    //TODO Replace return statement with cartesian product result
-                    // make sure to append table names to attributes and parse out in select func
-                    //return new ResultSet(temp.getAttributes(), sm.getRecords(temp));
                 } else {
                     System.err.println("DB does not contain table: " + tableName);
                 }

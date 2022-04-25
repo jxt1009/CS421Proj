@@ -275,11 +275,13 @@ public class DDLParser {
 
     private static boolean parseIndexClause(String stmt){
         //"create index myFooIndex on foo( bar );";
-        String index = stmt.split(" ")[2];
-        String indexString = stmt.split("on")[1].strip();
-        String tableName = indexString.split("\\(")[0];
-        String attrName = indexString.split("\\( ")[1].split("\\)")[0];
-        return catalog.addIndex(tableName, index, attrName);
+        String indexString = stmt.split("create index")[1];
+        String indexName = indexString.split("on")[0].strip();
+        System.out.println(indexName);
+        String tableName = indexString.split("\\(")[0].split("on")[1].strip();
+        System.out.println(tableName);
+        String attrName = indexString.split("\\(")[1].split("\\)")[0].strip();
+        return catalog.addIndex(tableName, indexName, attrName);
     }
 
 }
