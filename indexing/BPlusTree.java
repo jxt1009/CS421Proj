@@ -1,25 +1,28 @@
 package indexing;
 
 import catalog.ACatalog;
+import common.Attribute;
 import common.RecordPointer;
 import common.Table;
 import storagemanager.RecordHelper;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import storagemanager.Page;
 import java.lang.Math;
+import java.util.List;
 
 public class BPlusTree implements IBPlusTree{
 
-    private int pageSize;
     private String columnName;
     private ArrayList<BPTreeNode> tree = new ArrayList<BPTreeNode>();
     private HashMap<Object, RecordPointer> records = new HashMap<>();
     private int max_keys = 6;
     private int min_keys = 1;
     private int split_index = 1;
+    private Attribute columnAttribute;
     private Table table;
 
     private BPTreeNode root;
@@ -27,14 +30,15 @@ public class BPlusTree implements IBPlusTree{
 
     public BPlusTree(Table table, String column, int pageSize){
         this.columnName = column;
-        this.pageSize = pageSize;
         this.table = table;
-        String attribute_type = table.getAttrByName(columnName).getAttributeType();
-        double type_bytes = (double) RecordHelper.getTypeBytes(table.getAttrByName(columnName), attribute_type);
-        double page_pointer = 4;
+        this.columnAttribute = table.getAttrByName(columnName);
+        String attribute_type = columnAttribute.getAttributeType();
+        int type_bytes = RecordHelper.getTypeBytes(columnAttribute, attribute_type);
+        int page_pointer = 4;
         double pair_size = type_bytes + page_pointer;
         double pairs = pageSize / pair_size;
-        double n_value = Math.floor(pairs); // n value of the B+ Tree
+        max_keys = (int) Math.floor(pairs); // n value of the B+ Tree
+
     }
 
     public BPlusTree(String column){
@@ -66,7 +70,7 @@ public class BPlusTree implements IBPlusTree{
     public boolean insertRecordPointer(RecordPointer rp, Object searchKey) {
         // to traverse tree and insert based on search key location
         if(root == null){
-            root = new BPTreeNode(this.index,max_keys);
+            root = new BPTreeNode(index++,max_keys,columnAttribute);
             this.index++;
             root.getKeys()[0] = searchKey;
             root.numKeys++;
@@ -127,7 +131,7 @@ public class BPlusTree implements IBPlusTree{
 
     private BPTreeNode split(BPTreeNode tree) {
         // TODO add something for splitting files on hardware
-        BPTreeNode rightNode = new BPTreeNode(index++,max_keys);
+        BPTreeNode rightNode = new BPTreeNode(index++,max_keys,columnAttribute);
         Object rising = tree.getKeys()[split_index];
         int parentIndex;
         if(tree.getParent() != null){
@@ -173,7 +177,7 @@ public class BPlusTree implements IBPlusTree{
         if(tree.getParent() != null){
             return tree.getParent();
         }else{
-            this.root = new BPTreeNode(index++,max_keys);
+            this.root = new BPTreeNode(index++,max_keys,columnAttribute);
             this.root.getKeys()[0] = rising;
             this.root.getChildren()[0] = leftNode;
             this.root.getChildren()[1] = rightNode;
@@ -215,10 +219,9 @@ public class BPlusTree implements IBPlusTree{
 
     public BPTreeNode mergeRight(BPTreeNode tree){
         BPTreeNode parentNode = tree.getParent();
-        int parentIndex = 0;
+        int parentIndex;
         for(parentIndex= 0; parentNode.getChildren()[parentIndex] != tree; parentIndex++);
         BPTreeNode rightSib = parentNode.getChildren()[parentIndex + 1];
-        int fromParentIndex = tree.numKeys;
         for(int i = 0; i < rightSib.numKeys;i++){
             int insertIndex = tree.numKeys + 1 + i;
             if(tree.isLeaf()){
@@ -242,6 +245,7 @@ public class BPlusTree implements IBPlusTree{
             parentNode.getKeys()[i-1] = parentNode.getKeys()[i];
         }
         parentNode.numKeys--;
+        tree.writeToDisk();
         return tree;
     }
 
@@ -367,13 +371,38 @@ public class BPlusTree implements IBPlusTree{
         return null;
     }
 
+    private int getAvailablePageID(){
+        File[] files = new File(ACatalog.getCatalog().getDbLocation() + "/index").listFiles();
+        int fileMax = 0;
+        if(files == null){
+            return 0;
+        }
+        if(files.length > 0) {
+            String lastPage = files[files.length - 1].getName();
+            Integer pageID = Integer.parseInt(lastPage);
+            fileMax = pageID;
+        }
+        int max = 0;
+        if(fileMax > max){
+            max = fileMax;
+        }
+        max = max + 1;
+        return max ;
+    }
+
     @Override
     public ArrayList<RecordPointer> searchRange(Object searchKey, boolean lessThan, boolean equalTo) {
         return null;
     }
 
     public static void main(String[] args){
-        BPlusTree tree = new BPlusTree(null,"aa",5);
+        ArrayList<Attribute> attributes = new ArrayList<>();
+        attributes.add(new Attribute("id", "integer"));
+        BPlusTree tree = new BPlusTree(new Table("",
+                attributes,
+                new Attribute("id","integer")),
+                "id",
+                5);
         tree.insertRecordPointer(new RecordPointer(0,1), 5);
         tree.insertRecordPointer(new RecordPointer(0,2), 6);
         tree.insertRecordPointer(new RecordPointer(0,3), 7);

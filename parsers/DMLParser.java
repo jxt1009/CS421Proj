@@ -423,6 +423,7 @@ public class DMLParser {
         }
         if (rows == null) {
             System.err.println("Where clause could not be parsed");
+            return null;
         }
         rows = (ArrayList<ArrayList<Object>>) rows.clone();
         ResultSet results;
@@ -522,9 +523,6 @@ public class DMLParser {
                             }
                         }
                     }
-                    //TODO Replace return statement with cartesian product result
-                    // make sure to append table names to attributes and parse out in select func
-                    //return new ResultSet(temp.getAttributes(), sm.getRecords(temp));
                 } else {
                     System.err.println("DB does not contain table: " + tableName);
                 }

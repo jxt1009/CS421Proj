@@ -18,8 +18,8 @@ public class ColumnNode extends Node{
         columnName = RecordHelper.checkTableColumns(table.getAttributes(),columnName);
         if(columnName.contains(".")){
             String[] columnInfo = columnName.split("\\.");
-            columnName = columnInfo[1];
-            table = (Table) ACatalog.getCatalog().getTable(columnInfo[0]);
+            //columnName = columnInfo[1];
+            //table = (Table) ACatalog.getCatalog().getTable(columnInfo[0]);
         }
         this.table = table;
         this.columnName = columnName;

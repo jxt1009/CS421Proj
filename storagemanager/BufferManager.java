@@ -226,10 +226,11 @@ public class BufferManager {
 
     public boolean populateIndex(ITable itable, String indexName){
         Table table = (Table) itable;
+        System.out.println(table.getTableName());
         Attribute indexCol = table.getAttrByName(indexName);
         boolean success = true;
         if(indexCol != null && table.hasIndex(indexCol)){
-            BPlusTree tree = table.getIndex(table.getPrimaryKey());
+            BPlusTree tree = table.getIndex(indexCol);
             for(Integer page : table.getPageList()){
                 Page p = loadPage(table, page);
                 ArrayList<ArrayList<Object>> pageRecords = p.getRecords();
@@ -240,6 +241,9 @@ public class BufferManager {
                     success = success && tree.insertRecordPointer(rp,value);
                 }
             }
+            tree.printTree(tree);
+        }else{
+            success = false;
         }
         return success;
     }
